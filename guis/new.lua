@@ -5748,6 +5748,10 @@ mainapi:CreateCategory({
 	Icon = getcustomasset('newvape/assets/new/miniicon.png'),
 	Size = UDim2.fromOffset(19, 12)
 })
+mainapi:CreateCategory({
+	Name = 'Modules',
+	Icon = getcustomasset('')
+})
 mainapi.Categories.Main:CreateDivider('misc')
 
 --[[
