@@ -1,3 +1,4 @@
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -229,90 +230,270 @@ run(function()
         Max = 300,
         Default = 50
     })
+end)
 
-    local BedTP
-    BedTP = vape.Categories.Modules:CreateModule({
-        Name = "BedTP",
-        Description = "Teleports to enemy beds",
-        Function = function(callback)
-            if callback then
-                BedTP:Toggle(false)
-                local collection = game:GetService('CollectionService') :: CollectionService;
-                local lplr = game.playersService.LocalPlayer;
-                local tween = game:GetService('TweenService') :: TweenService
+run(function()
+    local tppos2 = nil
+    local TweenSpeed = 0.7
+    local HeightOffset = 5
+    local BedTP = {}
 
-                local isshield = function(obj: Model)
-                    return obj:GetAttribute('BedShieldEndTime') and obj:GetAttribute('BedShieldEndTime') > workspace:GetServerTimeNow() 
-                end
-                local getbed = function()
-                    for i: number, v: Model? in collection:GetTagged('bed') do
-                        if not isshield(v) and v.Bed.BrickColor ~= lplr.TeamColor then
-                            return v;
-                        end;
-                    end;
-                end;
-                
-                local bed = getbed();
-                assert(bed, 'lmao');
-                pcall(function()
-                    lplr.Character.Humanoid.Health = 0
-                end)
-                local con;
-                con = lplr.CharacterAdded:Connect(function(v)
-                    con:Disconnect();
-                    task.wait(0.2)
-                    tween:Create(v.PrimaryPart, TweenInfo.new(1.35), {CFrame = bed.Bed.CFrame + Vector3.new(0, 10, 0)}):Play();
-                end);
+    local function teleportWithTween(char, destination)
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if root then
+            destination = destination + Vector3.new(0, HeightOffset, 0)
+            local currentPosition = root.Position
+            if (destination - currentPosition).Magnitude > 0.5 then
+                local tweenInfo = TweenInfo.new(TweenSpeed, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+                local goal = {CFrame = CFrame.new(destination)}
+                local tween = TweenService:Create(root, tweenInfo, goal)
+                tween:Play()
+                tween.Completed:Wait()
+				BedTP:Toggle(false)
             end
         end
-    })
+    end
 
-    local PlayerTP
-    PlayerTP = vape.Categories.Modules:CreateModule({
-        Name = "PlayerTP",
-        Description = "Teleports you to the nearest player",
-        Function = function(callback)
-            if callback then
-                PlayerTP:Toggle(false)
-                local Players = game:GetService("Players")
-                local TweenService = game:GetService("TweenService")
-                local LocalPlayer = playersService.LocalPlayer
-                
-                local getClosestEnemy = function()
-                    local closestPlayer = nil
-                    local closestDistance = math.huge
-                
-                    for _, player in ipairs(Players:GetPlayers()) do
-                        if player ~= LocalPlayer and player.TeamColor ~= LocalPlayer.TeamColor and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                            local distance = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                            if distance < closestDistance then
-                                closestDistance = distance
-                                closestPlayer = player
-                            end
-                        end
+    local function killPlayer(player)
+        local character = player.Character
+        if character then
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.Health = 0
+            end
+        end
+    end
+
+    local function getEnemyBed(range)
+        range = range or math.huge
+        local bed = nil
+        local player = lplr
+
+        if not isAlive(player, true) then 
+            return nil 
+        end
+
+        local localPos = player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.Position or Vector3.zero
+        local playerTeam = player:GetAttribute('Team')
+        local beds = collectionService:GetTagged('bed')
+
+        for _, v in ipairs(beds) do 
+            if v:GetAttribute('PlacedByUserId') == 0 then
+                local bedTeam = v:GetAttribute('id'):sub(1, 1)
+                if bedTeam ~= playerTeam then 
+                    local bedPosition = v.Position
+                    local bedDistance = (localPos - bedPosition).Magnitude
+                    if bedDistance < range then 
+                        bed = v
+                        range = bedDistance
                     end
-                
-                    return closestPlayer
                 end
-                
-                local targetPlayer = getClosestEnemy()
-                assert(targetPlayer, "No enemy players found!")
-                
-                pcall(function()
-                    LocalPlayer.Character.Humanoid.Health = 0
-                end)
-                
-                local connection
-                connection = LocalPlayer.CharacterAdded:Connect(function(newCharacter)
-                    connection:Disconnect()
-                    task.wait(0.2)
-                
-                    local targetPosition = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
-                    TweenService:Create(newCharacter.PrimaryPart, TweenInfo.new(0.75), {CFrame = targetPosition}):Play()
-                end)
+            end
+        end
+
+        if not bed then 
+            warningNotification("BedTP", 'No enemy beds found. Total beds: '..#beds, 5)
+        else
+            --warningNotification("BedTP", 'Teleporting to bed at position: '..tostring(bed.Position), 3)
+			warningNotification("BedTP", 'Teleporting to bed at position: '..tostring(bed.Position), 3)
+        end
+
+        return bed
+    end
+
+    BedTP = vape.Categories.Blatant:CreateModule({
+        ["Name"] = "BedTP",
+        ["Function"] = function(callback)
+            if callback then
+				task.spawn(function()
+					repeat task.wait() until vape.Modules.Invisibility
+					repeat task.wait() until vape.Modules.GamingChair
+					if vape.Modules.Invisibility.Enabled and vape.Modules.GamingChair.Enabled then
+						errorNotification("BedTP", "Please turn off the Invisibility and GamingChair module!", 3)
+						BedTP:Toggle()
+						return
+					end
+					if vape.Modules.Invisibility.Enabled then
+						errorNotification("BedTP", "Please turn off the Invisibility module!", 3)
+						BedTP:Toggle()
+						return
+					end
+					if vape.Modules.GamingChair.Enabled then
+						errorNotification("BedTP", "Please turn off the GamingChair module!", 3)
+						BedTP:Toggle()
+						return
+					end
+					BedTP:Clean(lplr.CharacterAdded:Connect(function(char)
+						if tppos2 then 
+							task.spawn(function()
+								local root = char:WaitForChild("HumanoidRootPart", 9000000000)
+								if root and tppos2 then 
+									teleportWithTween(char, tppos2)
+									tppos2 = nil
+								end
+							end)
+						end
+					end))
+					local bed = getEnemyBed()
+					if bed then 
+						tppos2 = bed.Position
+						killPlayer(lplr)
+					else
+						BedTP:Toggle(false)
+					end
+				end)
             end
         end
     })
+end)
+
+run(function()
+	local PlayerTP = {}
+	local PlayerTPTeleport = {Value = 'Respawn'}
+	local PlayerTPSort = {Value = 'Distance'}
+	local PlayerTPMethod = {Value = 'Linear'}
+	local PlayerTPAutoSpeed = {}
+	local PlayerTPSpeed = {Value = 200}
+	local PlayerTPTarget = {Value = ''}
+	local playertween
+	local oldmovefunc
+	local bypassmethods = {
+		Respawn = function() 
+			if isEnabled('InfiniteFly') then 
+				return 
+			end
+			if not canRespawn() then 
+				return 
+			end
+			for i = 1, 30 do 
+				if isAlive(lplr, true) and lplr.Character:WaitForChild("Humanoid"):GetState() ~= Enum.HumanoidStateType.Dead then
+					lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+					lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+				end
+			end
+			lplr.CharacterAdded:Wait()
+			repeat task.wait() until isAlive(lplr, true) 
+			task.wait(0.1)
+			local target = GetTarget(nil, PlayerTPSort.Value == 'Health', true)
+			if target.RootPart == nil or not PlayerTP.Enabled then 
+				return
+			end
+			local localposition = lplr.Character:WaitForChild("HumanoidRootPart").Position
+			local tweenspeed = (PlayerTPAutoSpeed.Enabled and ((target.RootPart.Position - localposition).Magnitude / 470) + 0.001 * 2 or (PlayerTPSpeed.Value / 1000) + 0.1)
+			local tweenstyle = (PlayerTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[PlayerTPMethod.Value])
+			playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(tweenspeed, tweenstyle), {CFrame = target.RootPart.CFrame}) 
+			playertween:Play() 
+			playertween.Completed:Wait()
+		end,
+		Instant = function() 
+			local target = GetTarget(nil, PlayerTPSort.Value == 'Health', true)
+			if target.RootPart == nil then 
+				return PlayerTP:Toggle()
+			end
+			lplr.Character:WaitForChild("HumanoidRootPart").CFrame = (target.RootPart.CFrame + Vector3.new(0, 5, 0)) 
+			PlayerTP:Toggle()
+		end,
+		Recall = function()
+			if not isAlive(lplr, true) or lplr.Character:WaitForChild("Humanoid").FloorMaterial == Enum.Material.Air then 
+				errorNotification('PlayerTP', 'Recall ability not available.', 7)
+				return 
+			end
+			if not bedwars.AbilityController:canUseAbility('recall') then 
+				errorNotification('PlayerTP', 'Recall ability not available.', 7)
+				return
+			end
+			pcall(function()
+				oldmovefunc = require(lplr.PlayerScripts.PlayerModule).controls.moveFunction 
+				require(lplr.PlayerScripts.PlayerModule).controls.moveFunction = function() end
+			end)
+			bedwars.AbilityController:useAbility('recall')
+			local teleported
+			PlayerTP:Clean(lplr:GetAttributeChangedSignal('LastTeleported'):Connect(function() teleported = true end))
+			repeat task.wait() until teleported or not PlayerTP.Enabled or not isAlive(lplr, true) 
+			task.wait()
+			local target = GetTarget(nil, PlayerTPSort.Value == 'Health', true)
+			if target.RootPart == nil or not isAlive(lplr, true) or not PlayerTP.Enabled then 
+				return
+			end
+			local localposition = lplr.Character:WaitForChild("HumanoidRootPart").Position
+			local tweenspeed = (PlayerTPAutoSpeed.Enabled and ((target.RootPart.Position - localposition).Magnitude / 1000) + 0.001 or (PlayerTPSpeed.Value / 1000) + 0.1)
+			local tweenstyle = (PlayerTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[PlayerTPMethod.Value])
+			playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(tweenspeed, tweenstyle), {CFrame = target.RootPart.CFrame}) 
+			playertween:Play() 
+			playertween.Completed:Wait()
+		end
+	}
+	PlayerTP = vape.Categories.Blatant:CreateModule({
+		Name = 'PlayerTP',
+		Tooltip = 'Tweens you to a nearby target.',
+		Function = function(calling)
+			if calling then 
+				task.spawn(function()
+					repeat task.wait() until vape.Modules.Invisibility
+					repeat task.wait() until vape.Modules.GamingChair
+					if vape.Modules.Invisibility.Enabled and vape.Modules.GamingChair.Enabled then
+						errorNotification("PlayerTP", "Please turn off the Invisibility and GamingChair module!", 3)
+						PlayerTP:Toggle()
+						return
+					end
+					if vape.Modules.Invisibility.Enabled then
+						errorNotification("PlayerTP", "Please turn off the Invisibility module!", 3)
+						PlayerTP:Toggle()
+						return
+					end
+					if vape.Modules.GamingChair.Enabled then
+						errorNotification("PlayerTP", "Please turn off the GamingChair module!", 3)
+						PlayerTP:Toggle()
+						return
+					end
+					if GetTarget(nil, PlayerTPSort.Value == 'Health', true) and GetTarget(nil, PlayerTPSort.Value == 'Health', true).RootPart and shared.VapeFullyLoaded then 
+						bypassmethods[isAlive() and PlayerTPTeleport.Value or 'Respawn']() 
+					else
+						InfoNotification("PlayerTP", "No player/s found!", 3)
+					end
+					if PlayerTP.Enabled then 
+						PlayerTP:Toggle()
+					end
+				end)
+			else
+				pcall(function() playertween:Disconnect() end)
+				if oldmovefunc then 
+					pcall(function() require(lplr.PlayerScripts.PlayerModule).controls.moveFunction = oldmovefunc end)
+				end
+				oldmovefunc = nil
+			end
+		end
+	})
+	PlayerTPTeleport = PlayerTP:CreateDropdown({
+		Name = 'Teleport Method',
+		List = {'Respawn', 'Recall'},
+		Function = function() end
+	})
+	PlayerTPAutoSpeed = PlayerTP:CreateToggle({
+		Name = 'Auto Speed',
+		Tooltip = 'Automatically uses a "good" tween speed.',
+		Default = true,
+		Function = function(calling) 
+			if calling then 
+				pcall(function() PlayerTPSpeed.Object.Visible = false end) 
+			else 
+				pcall(function() PlayerTPSpeed.Object.Visible = true end) 
+			end
+		end
+	})
+	PlayerTPSpeed = PlayerTP:CreateSlider({
+		Name = 'Tween Speed',
+		Min = 20, 
+		Max = 350,
+		Default = 200,
+		Function = function() end
+	})
+	PlayerTPMethod = PlayerTP:CreateDropdown({
+		Name = 'Teleport Method',
+		List = GetEnumItems('EasingStyle'),
+		Function = function() end
+	})
+	PlayerTPSpeed.Object.Visible = false
 end)
 
 run(function()
