@@ -5750,7 +5750,7 @@ mainapi:CreateCategory({
 })
 mainapi:CreateCategory({
 	Name = 'Modules',
-	Icon = getcustomasset('')
+	Icon = getcustomasset('newvape/assets/new/module.png')
 })
 mainapi.Categories.Main:CreateDivider('misc')
 
