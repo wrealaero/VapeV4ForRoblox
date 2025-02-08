@@ -505,7 +505,7 @@ run(function()
 	end
 	local Slowmode = {Value = 2}
 	GodMode = vape.Categories.Modules:CreateModule({
-		Name = "AntiHit/Godmode",
+		Name = "AntiHit",
 		Function = function(callback)
 			if callback then
 				task.spawn(function()
