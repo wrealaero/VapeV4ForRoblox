@@ -2347,6 +2347,7 @@ run(function()
 end)
 	
 run(function()
+	local KillauraVisualizer
 	local Killaura
 	local Targets
 	local CPS
@@ -2494,7 +2495,63 @@ run(function()
 		Max = 10,
 		Default = 10
 	})
-	Mouse = Killaura:CreateToggle({Name = 'Require mouse down'})
+	Color = Killaura:CreateColorSlider({
+		Name = 'Color',
+		DefaultOpacity = 0.5,
+		Function = function(h, s, v, o)
+			if VisualizerPart then
+				VisualizerPart.Color = Color3.fromHSV(h, s, v)
+				VisualizerPart.Transparency = 1 - o
+			end
+		end
+	})
+	Killaura:CreateToggle({
+		Name = 'KillauraVisualizer',
+		Function = function(callback)
+			local VisualizerPart
+			local function createVisualizer(player)
+				local Visualizer = Instance.new("MeshPart")
+				Visualizer.MeshId = "rbxassetid://3726303797"
+				Visualizer.CanCollide = false
+				Visualizer.Anchored = true
+				Visualizer.Material = Enum.Material.Neon
+				Visualizer.Size = Vector3.new(10 * 1, 0.01, 10 * 1)
+				Visualizer.Color = Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
+				Visualizer.Parent = workspace
+	
+				local function updatePosition()
+					if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+						Visualizer.Position = player.Character.HumanoidRootPart.Position - Vector3.new(0, 2.9, 0)
+					end
+				end
+				game:GetService("RunService").Heartbeat:Connect(updatePosition)
+	
+				local function updateColor()
+					Visualizer.Color = Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
+				end
+				game:GetService("RunService").Heartbeat:Connect(updateColor)
+	
+				return Visualizer
+			end
+	
+			local player = game.Players.LocalPlayer
+			if callback and not VisualizerPart then
+				VisualizerPart = createVisualizer(player)
+			end
+	
+			local function cleanVisualizer()
+				if VisualizerPart then
+					VisualizerPart:Destroy()
+					VisualizerPart = nil
+				end
+			end
+	
+			if not callback then
+				cleanVisualizer()
+			end
+		end
+	})
+	Mouse = Killaura:CreateToggle({Name = 'Require mouse down AAA'})
 	Lunge = Killaura:CreateToggle({Name = 'Sword lunge only'})
 	Killaura:CreateToggle({
 		Name = 'Show target',
