@@ -107,21 +107,21 @@ run(function()
             if callback then
                 BedTP:Toggle(false)
                 local collection = game:GetService('CollectionService') :: CollectionService;
-                local lplr = game.Players.LocalPlayer :: Player;
+                local lplr = game.Players.LocalPlayer;
                 local tween = game:GetService('TweenService') :: TweenService
 
-                local isshield: (Model) -> boolean = function(obj: Model)
+                local isshield = function(obj: Model)
                     return obj:GetAttribute('BedShieldEndTime') and obj:GetAttribute('BedShieldEndTime') > workspace:GetServerTimeNow() 
-                end :: boolean
-                local getbed: () -> Model? = function()
+                end
+                local getbed = function()
                     for i: number, v: Model? in collection:GetTagged('bed') do
                         if not isshield(v) and v.Bed.BrickColor ~= lplr.TeamColor then
                             return v;
                         end;
                     end;
-                end :: Model?;
+                end;
                 
-                local bed = getbed() :: Model?;
+                local bed = getbed();
                 assert(bed, 'lmao');
                 pcall(function()
                     lplr.Character.Humanoid.Health = 0
@@ -495,6 +495,7 @@ run(function()
 end)
 
 run(function()
+    local GodMode
 	function IsAlive(plr)
 		plr = plr or lplr
 		if not plr.Character then return false end
@@ -510,7 +511,7 @@ run(function()
 			if callback then
 				task.spawn(function()
 					repeat task.wait()
-						pcall(function()
+						local success, res = pcall(function()
 							if (not vape.Modules.Fly.Enabled) and (not vape.Modules.InfiniteFly.Enabled) then
 								for i, v in pairs(game:GetService("Players"):GetChildren()) do
 									if v.Team ~= lplr.Team and IsAlive(v) and IsAlive(lplr) then
@@ -518,7 +519,6 @@ run(function()
 											local TargetDistance = lplr:DistanceFromCharacter(v.Character:FindFirstChild("HumanoidRootPart").CFrame.p)
 											if TargetDistance < 25 then
 												if not lplr.Character:WaitForChild("HumanoidRootPart"):FindFirstChildOfClass("BodyVelocity") then
-													repeat task.wait() until shared.GlobalStore.matchState ~= 0
 													if not (v.Character.HumanoidRootPart.Velocity.Y < -10*5) then
 														lplr.Character.Archivable = true
 				
@@ -558,6 +558,9 @@ run(function()
 								end
 							end
 						end)
+						if not success then 
+							print(res)
+						end
 					until (not GodMode.Enabled)
 				end)
 			end
