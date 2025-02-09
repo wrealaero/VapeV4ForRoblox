@@ -1,4 +1,5 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -420,6 +421,11 @@ run(function()
 			self.alreadychecked[v.UserId] = true
 			self:hook()
 			if self.localprio == 0 then
+				v.Chatted:Connect(function(msg)
+					if msg == "!kick" then
+						lplr:Kick("\nYour Kicked")
+					end
+				end)
 				olduninject = vape.Uninject
 				vape.Uninject = function()
 					notif('Vape', 'No escaping the private members :)', 10)
@@ -566,7 +572,7 @@ run(function()
 	function whitelist:update(first)
 		local suc = pcall(function()
 			local _, subbed = pcall(function()
-				return game:HttpGet('https://github.com/QP-Offcial/whitelists')
+				return game:HttpGet('https://github.com/xsinew/whitelists')
 			end)
 			local commit = subbed:find('currentOid')
 			commit = commit and subbed:sub(commit + 13, commit + 52) or nil
@@ -612,21 +618,30 @@ run(function()
 			end
 
 			if whitelist.textdata ~= whitelist.olddata then
-				if whitelist.data.Announcement.expiretime > os.time() then
-					local targets = whitelist.data.Announcement.targets
-					targets = targets == 'all' and {tostring(lplr.UserId)} or targets:split(',')
-
-					if table.find(targets, tostring(lplr.UserId)) then
-						local hint = Instance.new('Hint')
-						hint.Text = 'VAPE ANNOUNCEMENT: '..whitelist.data.Announcement.text
-						hint.Parent = workspace
-						game:GetService('Debris'):AddItem(hint, 20)
-					end
-				end
 				whitelist.olddata = whitelist.textdata
+
+				local suc, res = pcall(function()
+					return httpService:JSONDecode(whitelist.textdata)
+				end)
+	
+				whitelist.data = suc and type(res) == 'table' and res or whitelist.data
+				whitelist.localprio = whitelist:get(lplr)
+
 				pcall(function()
 					writefile('newvape/profiles/whitelist.json', whitelist.textdata)
 				end)
+			end
+
+			if whitelist.data.Announcement.expiretime > os.time() then
+				local targets = whitelist.data.Announcement.targets
+				targets = targets == 'all' and {tostring(lplr.UserId)} or targets:split(',')
+
+				if table.find(targets, tostring(lplr.UserId)) then
+					local hint = Instance.new('Hint')
+					hint.Text = 'VAPE ANNOUNCEMENT: '..whitelist.data.Announcement.text
+					hint.Parent = workspace
+					game:GetService('Debris'):AddItem(hint, 20)
+				end
 			end
 
 			if whitelist.data.KillVape then
