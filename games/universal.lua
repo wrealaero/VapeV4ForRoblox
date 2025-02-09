@@ -1,3 +1,4 @@
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -2347,7 +2348,8 @@ run(function()
 end)
 	
 run(function()
-	local KillauraVisualizer
+	local KillauraVisualThread
+	local KillauraVisualColorPicker
 	local Killaura
 	local Targets
 	local CPS
@@ -2506,28 +2508,37 @@ run(function()
 		end
 	})
 	Killaura:CreateToggle({
-		Name = 'KillauraVisualizer',
+		Name = 'Visualizer',
 		Function = function(callback)
+			KillauraVisualColorPicker.Object.Visible = callback
 			local VisualizerPart
 			local function createVisualizer(player)
+				if workspace.CurrentCamera:FindFirstChild("XSI_VISUAL") then
+					workspace.CurrentCamera:FindFirstChild("XSI_VISUAL"):Destroy()
+				end
 				local Visualizer = Instance.new("MeshPart")
 				Visualizer.MeshId = "rbxassetid://3726303797"
+				Visualizer.Name = "XSI_VISUAL"
 				Visualizer.CanCollide = false
 				Visualizer.Anchored = true
 				Visualizer.Material = Enum.Material.Neon
 				Visualizer.Size = Vector3.new(10 * 1, 0.01, 10 * 1)
-				Visualizer.Color = Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
-				Visualizer.Parent = workspace
+				Visualizer.Color = Color3.fromHSV(KillauraVisualColorPicker.Hue, KillauraVisualColorPicker.Sat, KillauraVisualColorPicker.Value)
+				Visualizer.Parent = workspace.CurrentCamera
 	
 				local function updatePosition()
 					if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-						Visualizer.Position = player.Character.HumanoidRootPart.Position - Vector3.new(0, 2.9, 0)
+						if _G.AntiHitClone then
+							Visualizer.Position = _G.AntiHitClone.HumanoidRootPart.Position - Vector3.new(0, 2.9, 0)
+						else
+							Visualizer.Position = player.Character.HumanoidRootPart.Position - Vector3.new(0, 2.9, 0)
+						end
 					end
 				end
 				game:GetService("RunService").Heartbeat:Connect(updatePosition)
 	
 				local function updateColor()
-					Visualizer.Color = Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
+					Visualizer.Color = Color3.fromHSV(KillauraVisualColorPicker.Hue, KillauraVisualColorPicker.Sat, KillauraVisualColorPicker.Value)
 				end
 				game:GetService("RunService").Heartbeat:Connect(updateColor)
 	

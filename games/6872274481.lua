@@ -1,4 +1,5 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local run = function(func)
 	func()
 end
@@ -2481,29 +2482,39 @@ run(function()
 		Name = 'Target Mode',
 		List = methods
 	})
+	local KillauraVisualColorPicker
+	local VisualizerPart
 	Killaura:CreateToggle({
-		Name = 'KillauraVisualizer',
+		Name = 'Visualizer',
 		Function = function(callback)
-			local VisualizerPart
+			KillauraVisualColorPicker.Object.Visible = callback
 			local function createVisualizer(player)
+				if workspace.CurrentCamera:FindFirstChild("XSI_VISUAL") then
+					workspace.CurrentCamera:FindFirstChild("XSI_VISUAL"):Destroy()
+				end
 				local Visualizer = Instance.new("MeshPart")
 				Visualizer.MeshId = "rbxassetid://3726303797"
+				Visualizer.Name = "XSI_VISUAL"
 				Visualizer.CanCollide = false
 				Visualizer.Anchored = true
 				Visualizer.Material = Enum.Material.Neon
 				Visualizer.Size = Vector3.new(10 * 1, 0.01, 10 * 1)
-				Visualizer.Color = Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
-				Visualizer.Parent = workspace
+				Visualizer.Color = Color3.fromHSV(KillauraVisualColorPicker.Hue, KillauraVisualColorPicker.Sat, KillauraVisualColorPicker.Value)
+				Visualizer.Parent = workspace.CurrentCamera
 	
 				local function updatePosition()
 					if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-						Visualizer.Position = player.Character.HumanoidRootPart.Position - Vector3.new(0, 2.9, 0)
+						if _G.AntiHitClone then
+							Visualizer.Position = _G.AntiHitClone.HumanoidRootPart.Position - Vector3.new(0, 2.9, 0)
+						else
+							Visualizer.Position = player.Character.HumanoidRootPart.Position - Vector3.new(0, 2.9, 0)
+						end
 					end
 				end
 				game:GetService("RunService").Heartbeat:Connect(updatePosition)
 	
 				local function updateColor()
-					Visualizer.Color = Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
+					Visualizer.Color = Color3.fromHSV(KillauraVisualColorPicker.Hue, KillauraVisualColorPicker.Sat, KillauraVisualColorPicker.Value)
 				end
 				game:GetService("RunService").Heartbeat:Connect(updateColor)
 	
@@ -2513,6 +2524,8 @@ run(function()
 			local player = game.Players.LocalPlayer
 			if callback and not VisualizerPart then
 				VisualizerPart = createVisualizer(player)
+			elseif not callback and VisualizerPart then
+				VisualizerPart:Destroy()
 			end
 	
 			local function cleanVisualizer()
@@ -2526,6 +2539,13 @@ run(function()
 				cleanVisualizer()
 			end
 		end
+	})
+	KillauraVisualColorPicker = Killaura:CreateColorSlider({
+		Name = 'Visualizer Color',
+		Darker = true,
+		DefaultHue = 0.6,
+		DefaultOpacity = 1,
+		Visible = false
 	})
 	Mouse = Killaura:CreateToggle({Name = 'Require mouse down'})
 	Swing = Killaura:CreateToggle({Name = 'No Swing'})
