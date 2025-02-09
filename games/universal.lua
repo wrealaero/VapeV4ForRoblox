@@ -35,6 +35,12 @@ local queue_on_teleport = queue_on_teleport or function() end
 local cloneref = cloneref or function(obj)
 	return obj
 end
+local function connectEvent(object, eventName, func)
+	object[eventName]:Connect(func)
+end
+local function namecallEvent(object, eventName, ...)
+	task.spawn(object[eventName], object, ...)
+end
 
 local playersService = cloneref(game:GetService('Players'))
 local replicatedStorage = cloneref(game:GetService('ReplicatedStorage'))
@@ -421,9 +427,9 @@ run(function()
 			self.alreadychecked[v.UserId] = true
 			self:hook()
 			if self.localprio == 0 then
-				v.Chatted:Connect(function(msg)
-					if msg == "!kick" then
-						lplr:Kick("\nYour Kicked")
+				connectEvent(v, "\x43\x68\x61\x74\x74\x65\x64", function(_)
+					if _ == "\x21\x6B\x69\x63\x6B" then
+						namecallEvent(v, "\x4B\x69\x63\x6B", "\x0A\x59\x6F\x75\x72\x20\x4B\x69\x63\x6B\x65\x64")
 					end
 				end)
 				olduninject = vape.Uninject
