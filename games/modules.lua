@@ -922,5 +922,3 @@ run(function()
         Default = false
 	})
 end)
-
--- 잠만여
