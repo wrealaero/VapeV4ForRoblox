@@ -737,3 +737,138 @@ run(function()
 		Max = 25
 	})
 end)
+
+run(function()
+    local AdetundeExploit
+    local AdetundeExploit_List
+
+    local adetunde_remotes = {
+        ["Shield"] = function()
+            local args = { [1] = "shield" }
+            local returning = game:GetService("ReplicatedStorage")
+                :WaitForChild("rbxts_include")
+                :WaitForChild("node_modules")
+                :WaitForChild("@rbxts")
+                :WaitForChild("net")
+                :WaitForChild("out")
+                :WaitForChild("_NetManaged")
+                :WaitForChild("UpgradeFrostyHammer")
+                :InvokeServer(unpack(args))
+            return returning
+        end,
+
+        ["Speed"] = function()
+            local args = { [1] = "speed" }
+            local returning = game:GetService("ReplicatedStorage")
+                :WaitForChild("rbxts_include")
+                :WaitForChild("node_modules")
+                :WaitForChild("@rbxts")
+                :WaitForChild("net")
+                :WaitForChild("out")
+                :WaitForChild("_NetManaged")
+                :WaitForChild("UpgradeFrostyHammer")
+                :InvokeServer(unpack(args))
+            return returning
+        end,
+
+        ["Strength"] = function()
+            local args = { [1] = "strength" }
+            local returning = game:GetService("ReplicatedStorage")
+                :WaitForChild("rbxts_include")
+                :WaitForChild("node_modules")
+                :WaitForChild("@rbxts")
+                :WaitForChild("net")
+                :WaitForChild("out")
+                :WaitForChild("_NetManaged")
+                :WaitForChild("UpgradeFrostyHammer")
+                :InvokeServer(unpack(args))
+            return returning
+        end
+    }
+
+    local current_upgrador = "Shield"
+    local hasnt_upgraded_everything = true
+    local testing = 1
+
+    AdetundeExploit = vape.Categories.Modules:CreateModule({
+        Name = 'AdetundeExploit',
+        Function = function(calling)
+            if calling then 
+                -- Check if in testing mode or equipped kit
+                -- if tostring(store.queueType) == "training_room" or store.equippedKit == "adetunde" then
+                --     AdetundeExploit["ToggleButton"](false) 
+                --     current_upgrador = AdetundeExploit_List.Value
+                task.spawn(function()
+                    repeat
+                        local returning_table = adetunde_remotes[current_upgrador]()
+                        
+                        if type(returning_table) == "table" then
+                            local Speed = returning_table["speed"]
+                            local Strength = returning_table["strength"]
+                            local Shield = returning_table["shield"]
+
+                            print("Speed: " .. tostring(Speed))
+                            print("Strength: " .. tostring(Strength))
+                            print("Shield: " .. tostring(Shield))
+                            print("Current Upgrador: " .. tostring(current_upgrador))
+
+                            if returning_table[string.lower(current_upgrador)] == 3 then
+                                if Strength and Shield and Speed then
+                                    if Strength == 3 or Speed == 3 or Shield == 3 then
+                                        if (Strength == 3 and Speed == 2 and Shield == 2) or
+                                           (Strength == 2 and Speed == 3 and Shield == 2) or
+                                           (Strength == 2 and Speed == 2 and Shield == 3) then
+                                            warningNotification("AdetundeExploit", "Fully upgraded everything possible!", 7)
+                                            hasnt_upgraded_everything = false
+                                        else
+                                            local things = {}
+                                            for i, v in pairs(adetunde_remotes) do
+                                                table.insert(things, i)
+                                            end
+                                            for i, v in pairs(things) do
+                                                if things[i] == current_upgrador then
+                                                    table.remove(things, i)
+                                                end
+                                            end
+                                            local random = things[math.random(1, #things)]
+                                            current_upgrador = random
+                                        end
+                                    end
+                                end
+                            end
+                        else
+                            local things = {}
+                            for i, v in pairs(adetunde_remotes) do
+                                table.insert(things, i)
+                            end
+                            for i, v in pairs(things) do
+                                if things[i] == current_upgrador then
+                                    table.remove(things, i)
+                                end
+                            end
+                            local random = things[math.random(1, #things)]
+                            current_upgrador = random
+                        end
+                        task.wait(0.1)
+                    until not AdetundeExploit.Enabled or not hasnt_upgraded_everything
+                end)
+                -- else
+                --     AdetundeExploit["ToggleButton"](false)
+                --     warningNotification("AdetundeExploit", "Kit required or you need to be in testing mode", 5)
+                -- end
+            end
+        end
+    })
+
+    local real_list = {}
+    for i, v in pairs(adetunde_remotes) do
+        table.insert(real_list, i)
+    end
+
+    AdetundeExploit_List = AdetundeExploit:CreateDropdown({
+        Name = 'Preferred Upgrade',
+        List = real_list,
+        Function = function() end,
+        Default = "Shield"
+    })
+end)
