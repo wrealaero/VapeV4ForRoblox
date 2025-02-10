@@ -818,7 +818,7 @@ run(function()
                                         if (Strength == 3 and Speed == 2 and Shield == 2) or
                                            (Strength == 2 and Speed == 3 and Shield == 2) or
                                            (Strength == 2 and Speed == 2 and Shield == 3) then
-                                            warningNotification("AdetundeExploit", "Fully upgraded everything possible!", 7)
+                                            -- warningNotification("AdetundeExploit", "Fully upgraded everything possible!", 7)
                                             hasnt_upgraded_everything = false
                                         else
                                             local things = {}
