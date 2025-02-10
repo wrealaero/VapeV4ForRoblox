@@ -912,15 +912,15 @@ run(function()
         Tooltip = 'Removes your NameTag.',
 		Function = function(callback)
 			if callback then
-				runService:BindToHeartbeat('NoNameTag', function()
+				NoNameTag:Clean(runService.RenderStepped:Connect(function()
 					pcall(function()
 						lplr.Character.Head.Nametag:Destroy()
 					end)
-				end)
-			else
-				runService:UnbindFromHeartbeat('NoNameTag')
+				end))
 			end
 		end,
         Default = false
 	})
 end)
+
+-- 잠만여
