@@ -250,6 +250,8 @@ run(function()
         Default = 50
     })
 
+	local DeathTPEnabled = false
+
     local BedTP
     BedTP = vape.Categories.Modules:CreateModule({
         Name = "BedTP",
@@ -274,14 +276,17 @@ run(function()
                 
                 local bed = getbed();
                 assert(bed, 'lmao');
+				local lastDeathTPEnabled = DeathTPEnabled
                 pcall(function()
+					DeathTPEnabled = false
                     lplr.Character.Humanoid.Health = 0
                 end)
                 local con;
                 con = lplr.CharacterAdded:Connect(function(v)
                     con:Disconnect();
                     task.wait(0.2)
-                    tween:Create(v.PrimaryPart, TweenInfo.new(1.35), {CFrame = bed.Bed.CFrame + Vector3.new(0, 10, 0)}):Play();
+                    tween:Create(v.PrimaryPart, TweenInfo.new(1.35), {CFrame = bed.Bed.CFrame + Vector3.new(0, 20, 0)}):Play();
+					DeathTPEnabled = lastDeathTPEnabled
                 end);
             end
         end
@@ -318,7 +323,9 @@ run(function()
                 local targetPlayer = getClosestEnemy()
                 assert(targetPlayer, "No enemy players found!")
                 
+				local lastDeathTPEnabled = DeathTPEnabled
                 pcall(function()
+					DeathTPEnabled = false
                     LocalPlayer.Character.Humanoid.Health = 0
                 end)
                 
@@ -328,11 +335,35 @@ run(function()
                     task.wait(0.2)
                 
                     local targetPosition = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
-                    TweenService:Create(newCharacter.PrimaryPart, TweenInfo.new(0.75), {CFrame = targetPosition}):Play()
+                    tweenService:Create(newCharacter.PrimaryPart, TweenInfo.new(0.75), {CFrame = targetPosition}):Play()
+					DeathTPEnabled = lastDeathTPEnabled
                 end)
             end
         end
     })
+
+	local DeathTP
+	local LastPos = nil
+	DeathTP = vape.Categories.Modules:CreateModule({
+        Name = "DeathTP",
+        Description = "Teleports you to the lastest death position",
+        Function = function(callback)
+            DeathTPEnabled = callback
+        end
+    })
+	local function setupEvent(char)
+		task.wait(0.2)
+		if DeathTPEnabled and LastPos and LastPos.Y > 20 then
+			tweenService:Create(char.PrimaryPart, TweenInfo.new(0.75), {CFrame = LastPos}):Play()
+		end
+		DeathTP:Clean(char:WaitForChild("Humanoid").Died:Once(function()
+			LastPos = char.PrimaryPart and char.PrimaryPart.CFrame or nil
+		end))
+	end
+	DeathTP:Clean(lplr.CharacterAdded:Connect(setupEvent))
+	if lplr.Character then
+		setupEvent(lplr.Character)
+	end
 end)
 
 run(function()
@@ -795,7 +826,7 @@ run(function()
         Function = function(calling)
             if calling then 
                 -- Check if in testing mode or equipped kit
-                -- if tostring(store.queueType) == "training_room" or store.equippedKit == "adetunde" then
+                -- if tostring(shared.store.queueType) == "training_room" or shared.store.equippedKit == "adetunde" then
                 --     AdetundeExploit["ToggleButton"](false) 
                 --     current_upgrador = AdetundeExploit_List.Value
                 task.spawn(function()
@@ -871,4 +902,25 @@ run(function()
         Function = function() end,
         Default = "Shield"
     })
+end)
+
+run(function()
+	local NoNameTag
+	NoNameTag = vape.Categories.Modules:CreateModule({
+		PerformanceModeBlacklisted = true,
+		Name = 'NoNameTag',
+        Tooltip = 'Removes your NameTag.',
+		Function = function(callback)
+			if callback then
+				runService:BindToHeartbeat('NoNameTag', function()
+					pcall(function()
+						lplr.Character.Head.Nametag:Destroy()
+					end)
+				end)
+			else
+				runService:UnbindFromHeartbeat('NoNameTag')
+			end
+		end,
+        Default = false
+	})
 end)
