@@ -1,3 +1,4 @@
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 repeat task.wait() until game:IsLoaded()
 if shared.vape then shared.vape:Uninject() end
 
@@ -94,7 +95,24 @@ if not isfolder('newvape/assets/'..gui) then
 	makefolder('newvape/assets/'..gui)
 end
 vape = loadstring(downloadFile('newvape/guis/'..gui..'.lua'), 'gui')()
-shared.vape = vape
+-- shared.vape = vape
+
+local XFunctions = loadstring(downloadFile('newvape/libraries/XFunctions.lua'), 'XFunctions')()
+XFunctions:SetGlobalData('XFunctions', XFunctions)
+XFunctions:SetGlobalData('vape', vape)
+
+getgenv().InfoNotification = function(title, msg, dur)
+	warn('info', tostring(title), tostring(msg), tostring(dur))
+	vape:CreateNotification(title, msg, dur)
+end
+getgenv().warningNotification = function(title, msg, dur)
+	warn('warn', tostring(title), tostring(msg), tostring(dur))
+	vape:CreateNotification(title, msg, dur, 'warning')
+end
+getgenv().errorNotification = function(title, msg, dur)
+	warn("error", tostring(title), tostring(msg), tostring(dur))
+	vape:CreateNotification(title, msg, dur, 'alert')
+end
 
 if not shared.VapeIndependent then
 	loadstring(downloadFile('newvape/games/universal.lua'), 'universal')()
@@ -116,3 +134,5 @@ else
 	vape.Init = finishLoading
 	return vape
 end
+
+shared.VapeFullyLoaded = true

