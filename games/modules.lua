@@ -1,5 +1,6 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -1460,7 +1461,7 @@ run(function()
 					end))
 					Autowin:Clean(lplr.CharacterAdded:Connect(function()
 						if (not isAlive(lplr, true)) then repeat task.wait() until isAlive(lplr, true) end
-						if (not store.matchState == 2) then return end
+						if (store.matchState ~= 2) then return end
 						--[[local oldpos = lplr.Character:WaitForChild("HumanoidRootPart").CFrame
 						repeat 
 							lplr.Character:WaitForChild("HumanoidRootPart").CFrame = oldpos

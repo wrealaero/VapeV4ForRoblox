@@ -1,6 +1,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local run = function(func)
 	func()
 end
@@ -2205,6 +2206,7 @@ run(function()
 	local Swing
 	local GUI
 	local BoxColor
+	local RangeColor
 	local ParticleTexture
 	local ParticleColor1
 	local ParticleColor2
@@ -2276,8 +2278,8 @@ run(function()
 							}
 						}
 					}
-					--debug.setupvalue(bedwars.SwordController.playSwordEffect, 6, fake)
-					--debug.setupvalue(bedwars.ScytheController.playLocalAnimation, 3, fake)
+					debug.setupvalue(bedwars.SwordController.playSwordEffect, 6, fake)
+					debug.setupvalue(bedwars.ScytheController.playLocalAnimation, 3, fake)
 
 					task.spawn(function()
 						local started = false
@@ -2511,6 +2513,17 @@ run(function()
 			end
 		end
 	})
+	RangeColor = RangeCircle:CreateColorSlider({
+		Name = 'Range Color',
+		Darker = true,
+		DefaultOpacity = 0.5,
+		Visible = false,
+		Function = function(hue, sat, val)
+			if Killaura.Enabled and RangeCirclePart ~= nil then
+				RangeCirclePart.Color = Color3.fromHSV(hue, sat, val)
+			end
+		end
+	})
 	AngleSlider = Killaura:CreateSlider({
 		Name = 'Max angle',
 		Min = 1,
@@ -2557,17 +2570,6 @@ run(function()
 					v:Destroy()
 				end
 				table.clear(Boxes)
-			end
-		end
-	})
-	BoxColor = Killaura:CreateColorSlider({
-		Name = 'Attack Color',
-		Darker = true,
-		DefaultOpacity = 0.5,
-		Visible = false,
-		Function = function(hue, sat, val)
-			if Killaura.Enabled and RangeCirclePart ~= nil then
-				RangeCirclePart.Color = Color3.fromHSV(hue, sat, val)
 			end
 		end
 	})
