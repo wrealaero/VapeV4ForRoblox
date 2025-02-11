@@ -1478,22 +1478,6 @@ run(function()
 end)
 
 run(function()
-	local GetHost = {Enabled = false}
-	GetHost = vape.Categories.Modules:CreateModule({
-		Name = "GetHost",
-		Tooltip = ":troll:",
-		Function = function(callback) 
-			if callback then
-				task.spawn(function()
-					warningNotification("GetHost", "This module is only for show. None of the settings will work.", 5)
-					game.Players.LocalPlayer:SetAttribute("CustomMatchRole", "host")
-				end)
-			end
-		end
-	})
-end)
-
-run(function()
     local NightmareEventButton
     NightmareEventButton = vape.Categories.Modules:CreateModule({
         Name = "Nightmare Emote",
