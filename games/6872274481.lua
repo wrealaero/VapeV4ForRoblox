@@ -4,6 +4,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local run = function(func)
 	func()
 end
@@ -2492,11 +2493,11 @@ run(function()
 						RangeCirclePart.CanCollide = false
 						RangeCirclePart.Anchored = true
 						RangeCirclePart.Material = Enum.Material.Neon
-						RangeCirclePart.Size = Vector3.new(Range.Value * 0.7, 0.01, Range.Value * 0.7)
 						if Killaura.Enabled then
 							RangeCirclePart.Parent = gameCamera
 						end
 						Killaura:Clean(runService.RenderStepped:Connect(function()
+							pcall(function() RangeCirclePart.Size = Vector3.new(Range.Value * 0.75, 0.01, Range.Value * 0.75) end)
 							pcall(function() RangeCirclePart.Position = lplr.Character.HumanoidRootPart.Position - Vector3.new(0, 2, 0) end)
 						end))
 						--bedwars.QueryUtil:setQueryIgnored(RangeCirclePart, true)
@@ -2560,6 +2561,7 @@ run(function()
 	Killaura:CreateToggle({
 		Name = 'Show target',
 		Function = function(callback)
+			TargetColor.Object.Visible = callback
 			if callback then
 				for i = 1, 10 do
 					local box = Instance.new('BoxHandleAdornment')
@@ -2568,9 +2570,11 @@ run(function()
 					box.Size = Vector3.new(3, 5, 3)
 					box.CFrame = CFrame.new(0, -0.5, 0)
 					box.ZIndex = 0
-					box.Color3.fromHSV(TargetColor.hue, TargetColor.sat, TargetColor.val)
 					box.Parent = vape.gui
 					Boxes[i] = box
+					Killaura:Clean(runService.RenderStepped:Connect(function()
+						pcall(function() box.Color3.fromHSV(TargetColor.hue, TargetColor.sat, TargetColor.val) end)
+					end))
 				end
 			else
 				for _, v in Boxes do
