@@ -2,6 +2,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -176,6 +177,11 @@ local function FindEnemyBed(maxdistance, highest)
 	local coveredblock = highest and target and GetTopBlock(target.Position, true)
 	if coveredblock then
 		target = coveredblock.Instance
+	end
+	for i,v in pairs(game:GetService("Teams"):GetTeams()) do
+		if v.TeamColor == target.Bed.BrickColor then
+			XStore.bedtable[target] = v.Name
+		end
 	end
 	return target
 end
