@@ -2207,6 +2207,7 @@ run(function()
 	local Mouse
 	local Swing
 	local GUI
+	local TargetColor
 	local RangeColor
 	local ParticleTexture
 	local ParticleColor1
@@ -2567,6 +2568,7 @@ run(function()
 					box.Size = Vector3.new(3, 5, 3)
 					box.CFrame = CFrame.new(0, -0.5, 0)
 					box.ZIndex = 0
+					box.Color3.fromHSV(TargetColor.hue, TargetColor.sat, TargetColor.val)
 					box.Parent = vape.gui
 					Boxes[i] = box
 				end
@@ -2576,6 +2578,15 @@ run(function()
 				end
 				table.clear(Boxes)
 			end
+		end
+	})
+	TargetColor = Killaura:CreateColorSlider({
+		Name = 'Target Color',
+		Darker = true,
+		DefaultOpacity = 0.5,
+		Visible = false,
+		Function = function(hue, sat, val)
+			
 		end
 	})
 	Killaura:CreateToggle({
