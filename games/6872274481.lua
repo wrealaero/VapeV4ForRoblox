@@ -3,6 +3,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local run = function(func)
 	func()
 end
@@ -2494,6 +2495,9 @@ run(function()
 						if Killaura.Enabled then
 							RangeCirclePart.Parent = gameCamera
 						end
+						Killaura:Clean(runService.RenderStepped:Connect(function()
+							pcall(function() RangeCirclePart.Position = lplr.Character.HumanoidRootPart.Position - Vector3.new(0, 2, 0) end)
+						end))
 						--bedwars.QueryUtil:setQueryIgnored(RangeCirclePart, true)
 					end
 				end)
