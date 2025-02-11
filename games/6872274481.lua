@@ -2,6 +2,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local run = function(func)
 	func()
 end
@@ -2205,7 +2206,6 @@ run(function()
 	local Mouse
 	local Swing
 	local GUI
-	local BoxColor
 	local RangeColor
 	local ParticleTexture
 	local ParticleColor1
@@ -2406,8 +2406,8 @@ run(function()
 					for i, v in Boxes do
 						v.Adornee = attacked[i] and attacked[i].RootPart or nil
 						if v.Adornee then
-							v.Color3 = Color3.fromHSV(BoxColor.Hue, BoxColor.Sat, BoxColor.Value)
-							v.Transparency = 1 - BoxColor.Opacity
+							v.Color3 = Color3.fromHSV(RangeColor.Hue, RangeColor.Sat, RangeColor.Value)
+							v.Transparency = 1 - RangeColor.Opacity
 						end
 					end
 
@@ -2473,6 +2473,7 @@ run(function()
 	RangeCircle = Killaura:CreateToggle({
 		Name = "Range Visualiser",
 		Function = function(call)
+			RangeColor.Object.Visible = call
 			if call then
 				local suc, err = pcall(function()
 					if (not shared.CheatEngineMode) then
@@ -2484,7 +2485,7 @@ run(function()
 								RangeCirclePart.Color = GuiLibrary.GUICoreColor
 							end)
 						else
-							RangeCirclePart.Color = Color3.fromHSV(BoxColor["Hue"], BoxColor["Sat"], BoxColor.Value)
+							RangeCirclePart.Color = Color3.fromHSV(RangeColor["Hue"], RangeColor["Sat"], RangeColor.Value)
 						end
 						RangeCirclePart.CanCollide = false
 						RangeCirclePart.Anchored = true
@@ -2502,6 +2503,7 @@ run(function()
 							RangeCirclePart:Destroy()
 							RangeCirclePart = nil
 						end
+						print(err)
 						InfoNotification("Killaura - Range Visualiser Circle", "There was an error creating the circle. Disabling...", 2)
 					end)
 				end
@@ -2513,7 +2515,7 @@ run(function()
 			end
 		end
 	})
-	RangeColor = RangeCircle:CreateColorSlider({
+	RangeColor = Killaura:CreateColorSlider({
 		Name = 'Range Color',
 		Darker = true,
 		DefaultOpacity = 0.5,
@@ -2553,7 +2555,6 @@ run(function()
 	Killaura:CreateToggle({
 		Name = 'Show target',
 		Function = function(callback)
-			BoxColor.Object.Visible = callback
 			if callback then
 				for i = 1, 10 do
 					local box = Instance.new('BoxHandleAdornment')
