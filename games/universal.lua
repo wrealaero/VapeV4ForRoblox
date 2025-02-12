@@ -2,6 +2,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -58,7 +59,23 @@ local groupService = cloneref(game:GetService('GroupService'))
 local textChatService = cloneref(game:GetService('TextChatService'))
 local contextService = cloneref(game:GetService('ContextActionService'))
 local coreGui = cloneref(game:GetService('CoreGui'))
-
+local function getPlayerFromDisplayName(displayName)
+	for _, plr in pairs(playersService:GetPlayers()) do
+		if plr.DisplayName == displayName then
+			print(plr)
+			return plr
+		end
+	end
+	return nil
+end
+local function getPlayerFromShortName(short_name)
+	for _, plr in pairs(playersService:GetPlayers()) do
+		if plr.Name:lower():sub(1, #short_name) == short_name:lower() or plr.DisplayName:lower():sub(1, #short_name) == short_name:lower() then
+			return plr
+		end
+	end
+	return nil
+end
 local isnetworkowner = identifyexecutor and table.find({'AWP', 'Nihon'}, ({identifyexecutor()})[1]) and isnetworkowner or function()
 	return true
 end
@@ -440,20 +457,21 @@ run(function()
 					local oldchannel = textChatService.ChatInputBarConfiguration.TargetTextChannel
 					local newchannel = cloneref(game:GetService('RobloxReplicatedStorage')).ExperienceChat.WhisperChat:InvokeServer(v.UserId)
 					if newchannel then
-						newchannel:SendAsync('helloimusinginhaler')
+						newchannel:SendAsync('vxpev4using')
 					end
 					textChatService.ChatInputBarConfiguration.TargetTextChannel = oldchannel
+					textChatService.ChannelTabsConfiguration.Enabled = false
 				elseif replicatedStorage:FindFirstChild('DefaultChatSystemChatEvents') then
-					replicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer('/w '..v.Name..' helloimusinginhaler', 'All')
+					replicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer('/w '..v.Name..' vxpev4using', 'All')
 				end
 			end
 		end
 	end
 
 	function whitelist:process(msg, plr)
-		if plr == lplr and msg == 'helloimusinginhaler' then return true end
+		if plr == lplr and msg == 'vxpev4using' then return true end
 
-		if self.localprio > 0 and not self.said[plr.Name] and msg == 'helloimusinginhaler' and plr ~= lplr then
+		if self.localprio > 0 and not self.said[plr.Name] and msg == 'vxpev4using' and plr ~= lplr then
 			self.said[plr.Name] = true
 			notif('Vape', plr.Name..' is using vape!', 60)
 			self.customtags[plr.Name] = {{
@@ -467,15 +485,17 @@ run(function()
 			return true
 		end
 
-		if self.localprio < self:get(plr) or plr == lplr then
+		if self.localprio < self:get(plr) then
 			local args = msg:split(' ')
-			table.remove(args, 1)
-			if self:getplayer(args[1]) then
-				table.remove(args, 1)
-				for cmd, func in self.commands do
-					if msg:sub(1, cmd:len() + 1):lower() == '!'..cmd:lower() then
-						func(args, plr)
-						return true
+			local mcmd = table.remove(args, 1)
+			local target = table.remove(args, 1)
+
+			for cmd, func in pairs(whitelist.commands) do
+				if mcmd:lower() == "!"..cmd:lower() then
+					if target == "@v" then
+						func(args)
+					elseif getPlayerFromShortName(target) == lplr then
+						func(args)
 					end
 				end
 			end
@@ -527,18 +547,15 @@ run(function()
 		if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
 			if exp and exp:WaitForChild('appLayout', 5) then
 				vape:Clean(exp:FindFirstChild('RCTScrollContentView', true).ChildAdded:Connect(function(obj)
-					local plr = playersService:GetPlayerByUserId(tonumber(obj.Name:split('-')[1]) or 0)
-					obj = obj:FindFirstChild('TextMessage', true)
+					obj = obj:FindFirstChild('BodyText', true)
 					if obj and obj:IsA('TextLabel') then
-						if plr then
-							self:newchat(obj, plr, true)
-							obj:GetPropertyChangedSignal('Text'):Wait()
-							self:newchat(obj, plr)
+						if obj.Text:find('vxpev4using') then
+							obj.Parent.Parent.Visible = false
 						end
+					end
 
-						if obj.ContentText:sub(1, 35) == 'You are now privately chatting with' then
-							obj.Visible = false
-						end
+					if tonumber(obj.Name:split('-')[1]) == 0 then
+						obj.Visible = false
 					end
 				end))
 			end
@@ -564,7 +581,7 @@ run(function()
 			local bubblechat = exp:WaitForChild('bubbleChat', 5)
 			if bubblechat then
 				vape:Clean(bubblechat.DescendantAdded:Connect(function(newbubble)
-					if newbubble:IsA('TextLabel') and newbubble.Text:find('helloimusinginhaler') then
+					if newbubble:IsA('TextLabel') and newbubble.Text:find('vxpev4using') then
 						newbubble.Parent.Parent.Visible = false
 					end
 				end))
@@ -665,8 +682,8 @@ run(function()
 				if vape.ThreadFix then
 					setthreadidentity(8)
 				end
-				local UIBlox = getrenv().require(game:GetService('CorePackages').UIBlox)
-				local Roact = getrenv().require(game:GetService('CorePackages').Roact)
+				local UIBlox = getrenv().require(game:GetService('CorePackages'):FindFirstChild("UIBlox", true))
+				local Roact = getrenv().require(game:GetService('CorePackages'):FindFirstChild("Roact", true))
 				UIBlox.init(getrenv().require(game:GetService('CorePackages').Workspace.Packages.RobloxAppUIBloxConfig))
 				local auth = getrenv().require(coreGui.RobloxGui.Modules.LuaApp.Components.Moderation.ModerationPrompt)
 				local darktheme = getrenv().require(game:GetService('CorePackages').Workspace.Packages.Style).Themes.DarkTheme
@@ -839,6 +856,12 @@ run(function()
 		table.clear(whitelist.commands)
 		table.clear(whitelist.data)
 		table.clear(whitelist)
+	end)
+end)
+run(function()
+	textChatService.TextChannels.RBXGeneral.MessageReceived:Connect(function(message)
+		local success, plr = pcall(playersService.GetPlayerByUserId, playersService, message.TextSource.UserId)
+		whitelist:process(message.Text, plr)
 	end)
 end)
 entitylib.start()

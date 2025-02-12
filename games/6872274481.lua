@@ -5,6 +5,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local run = function(func)
 	func()
 end
@@ -2573,6 +2574,7 @@ run(function()
 					box.Parent = vape.gui
 					Boxes[i] = box
 					Killaura:Clean(runService.RenderStepped:Connect(function()
+						pcall(function() box.Transparency = TargetColor.Opacity end)
 						pcall(function() box.Color3.fromHSV(TargetColor.hue, TargetColor.sat, TargetColor.val) end)
 					end))
 				end
@@ -2590,7 +2592,6 @@ run(function()
 		DefaultOpacity = 0.5,
 		Visible = false,
 		Function = function(hue, sat, val)
-			
 		end
 	})
 	Killaura:CreateToggle({
