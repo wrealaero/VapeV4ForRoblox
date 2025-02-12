@@ -5361,12 +5361,12 @@ run(function()
 		Function = function(callback)
 			if callback then
 				for _, v in getconnections(lplr.Idled) do
-					pcall(function() v:Disconnect() end)
+					v:Disconnect()
 				end
 	
 				for _, v in getconnections(runService.Heartbeat) do
 					if type(v.Function) == 'function' and table.find(debug.getconstants(v.Function), remotes.AfkStatus) then
-						pcall(function() v:Disconnect() end)
+						v:Disconnect()
 					end
 				end
 	
@@ -8487,6 +8487,18 @@ run(function()
 	})
 end)
 
+local function createMonitoredValue(value, onChange)
+	task.spawn(function()
+		local oldValue = value
+		while task.wait() do
+			if oldValue ~= value then
+				onChange(oldValue, value)
+				oldValue = value
+			end
+		end
+	end)
+end
+
 local function createMonitoredTable(originalTable, onChange)
     local proxy = {}
     local mt = {
@@ -8511,4 +8523,9 @@ store = createMonitoredTable(store, function(key, o, n)
 end)
 bedwars = createMonitoredTable(bedwars, function(key, o, n)
 	XFunctions:SetGlobalData('bedwars', bedwars)
+end)
+
+getgenv().GAttacking = Attacking
+createMonitoredValue(Attacking, function(o, n)
+	getgenv().GAttacking = n
 end)

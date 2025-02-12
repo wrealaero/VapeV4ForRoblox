@@ -1,9 +1,3 @@
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -427,7 +421,7 @@ end
 
 run(function()
     local tppos2 = nil
-    local TweenSpeed = 0.7
+    local TweenSpeed = 0.15
     local HeightOffset = 5
     local BedTP = {}
 
@@ -555,7 +549,7 @@ run(function()
 			destination = destination + Vector3.new(0, HeightOffset, 0)
 			local currentPosition = root.Position
 			if (destination - currentPosition).Magnitude > 0.5 then
-				local tweenInfo = TweenInfo.new(0.65, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0)
+				local tweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0)
 				local goal = {CFrame = CFrame.new(destination)}
 				local tween = TweenService:Create(root, tweenInfo, goal)
 				tween:Play()
@@ -678,153 +672,70 @@ local function GetTarget()
 end
 
 run(function()
-	local PlayerTP
-	local PlayerTPTeleport = {Value = 'Respawn'}
-	local PlayerTPSort = {Value = 'Distance'}
-	local PlayerTPMethod = {Value = 'Linear'}
-	local PlayerTPAutoSpeed = {}
-	local PlayerTPSpeed = {Value = 200}
-	local PlayerTPTarget = {Value = ''}
-	local playertween
-	local oldmovefunc
-	local bypassmethods = {
-		Respawn = function() 
-			if isEnabled('InfiniteFly') then 
-				return 
-			end
-			if not canRespawn() then 
-				return 
-			end
-			for i = 1, 30 do 
-				if isAlive(lplr, true) and lplr.Character:WaitForChild("Humanoid"):GetState() ~= Enum.HumanoidStateType.Dead then
-					lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
-					lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
-				end
-			end
-			lplr.CharacterAdded:Wait()
-			repeat task.wait() until isAlive(lplr, true) 
-			task.wait(0.1)
-			local target = GetTarget(nil, PlayerTPSort.Value == 'Health', true)
-			if target.RootPart == nil or not PlayerTP.Enabled then 
-				return
-			end
-			local localposition = lplr.Character:WaitForChild("HumanoidRootPart").Position
-			local tweenspeed = (PlayerTPAutoSpeed.Enabled and ((target.RootPart.Position - localposition).Magnitude / 470) + 0.001 * 2 or (PlayerTPSpeed.Value / 1000) + 0.1)
-			local tweenstyle = (PlayerTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[PlayerTPMethod.Value])
-			playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(tweenspeed, tweenstyle), {CFrame = target.RootPart.CFrame}) 
-			playertween:Play() 
-			playertween.Completed:Wait()
-		end,
-		Instant = function() 
-			local target = GetTarget(nil, PlayerTPSort.Value == 'Health', true)
-			if target.RootPart == nil then 
-				return PlayerTP:Toggle()
-			end
-			lplr.Character:WaitForChild("HumanoidRootPart").CFrame = (target.RootPart.CFrame + Vector3.new(0, 5, 0)) 
-			PlayerTP:Toggle()
-		end,
-		Recall = function()
-			if not isAlive(lplr, true) or lplr.Character:WaitForChild("Humanoid").FloorMaterial == Enum.Material.Air then 
-				errorNotification('PlayerTP', 'Recall ability not available.', 7)
-				return 
-			end
-			if not bedwars.AbilityController:canUseAbility('recall') then 
-				errorNotification('PlayerTP', 'Recall ability not available.', 7)
-				return
-			end
-			pcall(function()
-				oldmovefunc = require(lplr.PlayerScripts.PlayerModule).controls.moveFunction 
-				require(lplr.PlayerScripts.PlayerModule).controls.moveFunction = function() end
-			end)
-			bedwars.AbilityController:useAbility('recall')
-			local teleported
-			PlayerTP:Clean(lplr:GetAttributeChangedSignal('LastTeleported'):Connect(function() teleported = true end))
-			repeat task.wait() until teleported or not PlayerTP.Enabled or not isAlive(lplr, true) 
-			task.wait()
-			local target = GetTarget(nil, PlayerTPSort.Value == 'Health', true)
-			if target.RootPart == nil or not isAlive(lplr, true) or not PlayerTP.Enabled then 
-				return
-			end
-			local localposition = lplr.Character:WaitForChild("HumanoidRootPart").Position
-			local tweenspeed = (PlayerTPAutoSpeed.Enabled and ((target.RootPart.Position - localposition).Magnitude / 1000) + 0.001 or (PlayerTPSpeed.Value / 1000) + 0.1)
-			local tweenstyle = (PlayerTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[PlayerTPMethod.Value])
-			playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(tweenspeed, tweenstyle), {CFrame = target.RootPart.CFrame}) 
-			playertween:Play() 
-			playertween.Completed:Wait()
+	local playertp;
+	local playertpautospeed;
+	local playertpspeed
+	local playertpmode;
+	
+	local playermodes = {
+		Reset = function(plr)
+			bedwars.Client:Get('ResetCharacter'):SendToServer()
+			lplr.CharacterAdded:Wait();
+			task.wait(0.2)
+			local speed: number = playertpautospeed.Enabled and (entitylib.character.RootPart.Position - plr.RootPart.Position).Magnitude / 800 or playertpspeed.Value;
+			--tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(speed), {CFrame = plr.RootPart.CFrame}):Play();
+			bettertween(lplr.Character.PrimaryPart, TweenInfo.new(speed), {CFrame = plr.RootPart.CFrame}, plr.RootPart, speed)
 		end
 	}
-	PlayerTP = vape.Categories.Modules:CreateModule({
+	local tween;
+	playertp = vape.Categories.Utility:CreateModule({
 		Name = 'PlayerTP',
-		Tooltip = 'Tweens you to a nearby target.',
-		Function = function(calling)
-			if calling then 
-				task.spawn(function()
-					repeat task.wait() until vape.Modules.Invisibility
-					repeat task.wait() until vape.Modules.GamingChair
-					if vape.Modules.Invisibility.Enabled and vape.Modules.GamingChair.Enabled then
-						errorNotification("PlayerTP", "Please turn off the Invisibility and GamingChair module!", 3)
-						PlayerTP:Toggle()
-						return
-					end
-					if vape.Modules.Invisibility.Enabled then
-						errorNotification("PlayerTP", "Please turn off the Invisibility module!", 3)
-						PlayerTP:Toggle()
-						return
-					end
-					if vape.Modules.GamingChair.Enabled then
-						errorNotification("PlayerTP", "Please turn off the GamingChair module!", 3)
-						PlayerTP:Toggle()
-						return
-					end
-					if GetTarget(nil, PlayerTPSort.Value == 'Health', true) and GetTarget(nil, PlayerTPSort.Value == 'Health', true).RootPart and shared.VapeFullyLoaded then 
-						bypassmethods[isAlive() and PlayerTPTeleport.Value or 'Respawn']() 
-					else
-						InfoNotification("PlayerTP", "No player/s found!", 3)
-					end
-					if PlayerTP.Enabled then 
-						PlayerTP:Toggle()
-					end
-				end)
-			else
-				pcall(function() playertween:Disconnect() end)
-				if oldmovefunc then 
-					pcall(function() require(lplr.PlayerScripts.PlayerModule).controls.moveFunction = oldmovefunc end)
+		Tooltip = 'Teleports your character to enemy\'s bed',
+		Function = function(call: boolean): ()
+			if call then
+				if store.matchState == 0 then
+					notif('PlayerTP', 'Waiting until the game starts.', 6, 'alert')
+					repeat task.wait() until store.matchState ~= 0 or not playertp.Enabled
+					if not playertp.Enabled then return end;
 				end
-				oldmovefunc = nil
-			end
+				playertp:Toggle();
+				local plr = entitylib.AllPosition({
+					Range = math.huge,
+					Wallcheck = false,
+					Part = 'RootPart',
+					Players = true,
+					Limit = 2,
+					Sort = sortmethods.Distance
+				})[1]
+				if plr then
+					playermodes[playertpmode.Value](plr)
+				end;
+			end;
 		end
-	})
-	PlayerTPTeleport = PlayerTP:CreateDropdown({
-		Name = 'Teleport Method',
-		List = {'Respawn', 'Recall'},
-		Function = function() end
-	})
-	PlayerTPAutoSpeed = PlayerTP:CreateToggle({
-		Name = 'Auto Speed',
-		Tooltip = 'Automatically uses a "good" tween speed.',
-		Default = true,
-		Function = function(calling) 
-			if calling then 
-				pcall(function() PlayerTPSpeed.Object.Visible = false end) 
-			else 
-				pcall(function() PlayerTPSpeed.Object.Visible = true end) 
-			end
+	});
+	playertpmode = playertp:CreateDropdown({
+		Name = 'Mode',
+		List = {'Reset'},
+		Function = void
+	});
+	playertpautospeed = playertp:CreateToggle({
+		Name = 'AutoSpeed',
+		Function = function(call: boolean): ()
+			playertpspeed.Object.Visible = not call;
 		end
-	})
-	PlayerTPSpeed = PlayerTP:CreateSlider({
-		Name = 'Tween Speed',
-		Min = 20, 
-		Max = 350,
-		Default = 200,
-		Function = function() end
-	})
-	PlayerTPMethod = PlayerTP:CreateDropdown({
-		Name = 'Teleport Method',
-		List = GetEnumItems('EasingStyle'),
-		Function = function() end
-	})
-	PlayerTPSpeed.Object.Visible = false
-end)
+	});
+	playertpspeed = playertp:CreateSlider({
+		Name = 'Speed',
+		Min = 0.1,
+		Max = 5,
+		Decimal = 30,
+		Function = void,
+		Default = 0.85,
+		Darker = true
+	});
+	playertpspeed.Object.Visible = playertpautospeed.Enabled and false or true;
+end);
+
 
 local GodMode = {Enabled = false}
 run(function()
@@ -1335,10 +1246,9 @@ run(function()
                 local connection
                 connection = LocalPlayer.CharacterAdded:Connect(function(newCharacter)
                     connection:Disconnect()
-                    task.wait(0.2)
-                
                     local targetPosition = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
-                    tweenService:Create(newCharacter.PrimaryPart, TweenInfo.new(0.75), {CFrame = targetPosition}):Play()
+					task.wait(0.3)
+                    tweenService:Create(newCharacter.PrimaryPart, TweenInfo.new(1.1 + math.random(-2, 2)/10), {CFrame = targetPosition}):Play()
 					DeathTPEnabled = lastDeathTPEnabled
                 end)
             end
@@ -1429,7 +1339,7 @@ run(function()
 							repeat
 							local target = FindTarget(45, store.blockRaycast)
 							if not target.RootPart then break end
-							playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.65), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+							playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(1.1), {CFrame = target.RootPart.CFrame + Vector3.new(0, 2, 0)})
 							playertween:Play()
 							task.wait()
 							until not (FindTarget(45, store.blockRaycast) and FindTarget(45, store.blockRaycast).RootPart) or not Autowin.Enabled or not isAlive()
@@ -1441,7 +1351,7 @@ run(function()
 						elseif FindTarget(nil, store.blockRaycast) and FindTarget(nil, store.blockRaycast).RootPart then
 							task.wait()
 							local target = FindTarget(nil, store.blockRaycast)
-							playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.65, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+							playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(1.1, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 							playertween:Play()
 							if AutowinNotification.Enabled then
 								task.spawn(InfoNotification, "Autowin", "Killing "..target.Player.DisplayName.." ("..(target.Player.Team and target.Player.Team.Name or "neutral").." Team)", 5)
@@ -1452,7 +1362,7 @@ run(function()
 									repeat
 									target = FindTarget(50, store.blockRaycast)
 									if not target.RootPart or not isAlive() then break end
-									playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.65), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+									playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.1), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 									playertween:Play()
 									task.wait()
 									until not (FindTarget(50, store.blockRaycast) and FindTarget(50, store.blockRaycast).RootPart) or (not Autowin.Enabled) or (not isAlive())
