@@ -1,11 +1,3 @@
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local run = function(func)
 	func()
 end
@@ -2230,6 +2222,44 @@ run(function()
 		AttackRemote = bedwars.Client:Get(remotes.AttackEntity).instance
 	end)
 
+	local weapontiers = {
+		[1] = 'wood_sword',
+		[2] = 'stone_sword',
+		[3] = 'iron_sword',
+		[4] = 'diamond_sword',
+		[5] = 'emerald_sword',
+		[6] = 'wood_dao',
+		[7] = 'stone_dao',
+		[8] = 'iron_dao',
+		[9] = 'diamond_dao',
+		[10] = 'emerald_dao',
+		[11] = 'void_sword',
+		[12] = 'rageblade'
+	}
+
+	local getWeapon = function()
+		if KnitInit then
+			return Limit.Enabled and store.hand or store.tools.sword
+		else
+			local tier = -1
+			local swordseleted = {
+				tool = nil
+			}
+			local inv = bedwars.getInventory(lplr)
+			for i,v in inv.items do
+				local index = table.find(weapontiers, v.Name)
+				if index and index > tier then
+					tier = index
+					swordseleted = {
+						tool = v,
+						Tool = v
+					}
+				end
+			end
+			return swordseleted
+		end
+	end
+
 	local function getAttackData()
 		if Mouse.Enabled then
 			if not inputService:IsMouseButtonPressed(0) then return false end
@@ -2282,9 +2312,10 @@ run(function()
 							}
 						}
 					}
-					debug.setupvalue(bedwars.SwordController.playSwordEffect, 6, fake)
-					debug.setupvalue(bedwars.ScytheController.playLocalAnimation, 3, fake)
-
+					pcall(function()
+						debug.setupvalue(bedwars.SwordController.playSwordEffect, 6, fake)
+						debug.setupvalue(bedwars.ScytheController.playLocalAnimation, 3, fake)
+					end)
 					task.spawn(function()
 						local started = false
 						repeat
@@ -5330,12 +5361,12 @@ run(function()
 		Function = function(callback)
 			if callback then
 				for _, v in getconnections(lplr.Idled) do
-					v:Disconnect()
+					pcall(function() v:Disconnect() end)
 				end
 	
 				for _, v in getconnections(runService.Heartbeat) do
 					if type(v.Function) == 'function' and table.find(debug.getconstants(v.Function), remotes.AfkStatus) then
-						v:Disconnect()
+						pcall(function() v:Disconnect() end)
 					end
 				end
 	
