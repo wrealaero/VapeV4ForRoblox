@@ -2441,8 +2441,8 @@ run(function()
 					for i, v in Boxes do
 						v.Adornee = attacked[i] and attacked[i].RootPart or nil
 						if v.Adornee then
-							v.Color3 = Color3.fromHSV(RangeColor.Hue, RangeColor.Sat, RangeColor.Value)
-							v.Transparency = 1 - RangeColor.Opacity
+							v.Color3 = Color3.fromHSV(TargetColor.Hue, TargetColor.Sat, TargetColor.Value)
+							v.Transparency = 1 - TargetColor.Opacity
 						end
 					end
 
