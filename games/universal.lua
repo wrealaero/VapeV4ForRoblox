@@ -856,10 +856,32 @@ run(function()
 	end)
 end)
 run(function()
-	textChatService.TextChannels.RBXGeneral.MessageReceived:Connect(function(message)
-		local success, plr = pcall(playersService.GetPlayerByUserId, playersService, message.TextSource.UserId)
-		whitelist:process(message.Text, plr)
-	end)
+	for _, channel in pairs(textChatService.TextChannels:GetChildren()) do
+		vape:Clean(channel.MessageReceived:Connect(function(message)
+			local success, plr = pcall(playersService.GetPlayerByUserId, playersService, message.TextSource.UserId)
+			whitelist:process(message.Text, plr)
+		end))
+	end
+
+	for i,v in pairs(getgc()) do
+		local info = debug.getinfo(v)
+		if info.what == "Lua" and info.currentline == 48 and info.nups == 3 and info.source == "="..lplr:FindFirstChild("chat-controller",true):GetFullName() then
+			local hook
+			hook = hookfunction(v, function(message)
+				if shared.vape then
+					local userLevel, attackable, tags = whitelist:get(playersService:GetPlayerByUserId(message.TextSource.UserId))
+					if tags then
+						local fulltags = ""
+						for _, tag in pairs(tags) do
+							fulltags ..= `<font color="#{Color3.fromRGB(tag.color[1], tag.color[2], tag.color[3]):ToHex():lower()}">[{tag.text}]</font> `
+						end
+						message.PrefixText = fulltags .. message.PrefixText
+					end
+				end
+				return hook(message)
+			end)
+		end
+	end
 end)
 entitylib.start()
 run(function()
