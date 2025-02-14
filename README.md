@@ -12,9 +12,9 @@
 </h2>
 
 ## Contacts
-[Discord](https://discord.gg/ZqS836yx9k)
+[Discord](https://discord.gg/xRu8jUbSS5)
 <br/>
-[Youtube](https://youtube.com/c/7GrandDadVape)
+[Youtube](https://www.youtube.com/@ScriptsQP)
 
 ## Usage
 1. Download the specific scripting utility of your choice.
@@ -35,7 +35,11 @@ If its not the supposed utility at fault, please try some troubleshooting steps.
 3. Ensuring no external script is conflicting with vape.
 
 ## Developers & Credits
-[7GrandDad](https://github.com/7GrandDadPGN) - Lead maintainer of the project - vaperoblox on Discord
+[QP-Offcial](https://github.com/QP-Offcial) - Lead maintainer of the project - scriptsqp on Discord
+<br/>
+[jhki](https://github.com/jhki0) - Developer of the project - 59it on Discord
+<br/>
+[xsinew](https://github.com/xsinew) - Developer of the project - xsinew on Discord
 <br/>
 [rce-incorporated](https://github.com/rce-incorporated/Fiu) - Luau bytecode disassembly with modifications
 <br/>
