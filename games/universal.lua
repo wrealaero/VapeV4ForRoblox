@@ -688,7 +688,8 @@ run(function()
 						end
 					end
 				end)
-			end,
+			end
+		end,
 		crash = function()
 			task.spawn(function()
 				repeat
