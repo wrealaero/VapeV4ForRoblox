@@ -4,6 +4,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -860,7 +861,7 @@ run(function()
 	end)
 end)
 run(function()
-	for _, channel in pairs(textChatService.TextChannels:GetChildren()) do
+	for _, channel in pairs(textChatService:WaitForChild("TextChannels", 9e9):GetChildren()) do
 		vape:Clean(channel.MessageReceived:Connect(function(message)
 			if message.TextSource then
 				local success, plr = pcall(playersService.GetPlayerByUserId, playersService, message.TextSource.UserId)
@@ -869,31 +870,37 @@ run(function()
 		end))
 	end
 
-	for i,v in pairs(getgc(true)) do
-		if typeof(v) == "table" and rawget(v, "KnitStart") and rawget(v, "getPrefixTags") then
-			local hook
-			hook = hookfunction(v.getPrefixTags, function(_, player)
-				local tag_result = ""
-				if shared.vape then
-					local userLevel, attackable, tags = whitelist:get(player)
-					if tags then
-						for _, tag in pairs(tags) do
-							tag_result ..= `<font color="#{tag.color:ToHex():lower()}">[{tag.text}]</font> `
+	task.spawn(function()
+		local found = false
+		while not found and task.wait(1) do
+			for i,v in pairs(getgc(true)) do
+				if typeof(v) == "table" and rawget(v, "KnitStart") and rawget(v, "getPrefixTags") then
+					local hook
+					hook = hookfunction(v.getPrefixTags, function(_, player)
+						local tag_result = ""
+						if shared.vape then
+							local userLevel, attackable, tags = whitelist:get(player)
+							if tags then
+								for _, tag in pairs(tags) do
+									tag_result ..= `<font color="#{tag.color:ToHex():lower()}">[{tag.text}]</font> `
+								end
+							end
 						end
-					end
-				end
 
-				local tags = player:FindFirstChild("Tags")
-				if tags then
-					for _, tag in pairs(tags:GetChildren()) do
-						tag_result ..= tag.Value .. " "
-					end
+						local tags = player:FindFirstChild("Tags")
+						if tags then
+							for _, tag in pairs(tags:GetChildren()) do
+								tag_result ..= tag.Value .. " "
+							end
+						end
+						return tag_result
+					end)
+					found = true
+					break
 				end
-				return tag_result
-			end)
-			break
+			end
 		end
-	end
+	end)
 end)
 entitylib.start()
 run(function()
