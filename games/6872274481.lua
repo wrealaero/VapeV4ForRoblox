@@ -760,6 +760,11 @@ run(function()
 
 	for i, v in remoteNames do
 		local remote = dumpRemote(debug.getconstants(v))
+		if i == "HannahKill" then
+			remote = "HannahPromptTrigger"
+		elseif i == "ConsumeBattery" then
+			remote = "ConsumeBattery"
+		end
 		if remote == '' then
 			notif('Vape', 'Failed to grab remote ('..i..')', 10, 'alert')
 		end
