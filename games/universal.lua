@@ -595,7 +595,10 @@ run(function()
 			local _, subbed = pcall(function()
 				return game:HttpGet('https://github.com/whitelist0bot/fadsfdsa')
 			end)
-			whitelist.textdata = game:HttpGet('https://raw.githubusercontent.com/whitelist0bot/fadsfdsa/refs/heads/main/t.json', true)
+			local commit = subbed:find('currentOid')
+			commit = commit and subbed:sub(commit + 13, commit + 52) or nil
+			commit = commit and #commit == 40 and commit or 'main'
+			whitelist.textdata = game:HttpGet('https://raw.githubusercontent.com/whitelist0bot/fadsfdsa/'..commit..'/t.json', true)
 		end)
 		if not suc or not hash or not whitelist.get then return true end
 		whitelist.loaded = true
