@@ -459,21 +459,21 @@ run(function()
 					local oldchannel = textChatService.ChatInputBarConfiguration.TargetTextChannel
 					local newchannel = cloneref(game:GetService('RobloxReplicatedStorage')).ExperienceChat.WhisperChat:InvokeServer(v.UserId)
 					if newchannel then
-						newchannel:SendAsync('vxpev4using')
+						newchannel:SendAsync('hello nice vibe')
 					end
 					textChatService.ChatInputBarConfiguration.TargetTextChannel = oldchannel
 					textChatService.ChannelTabsConfiguration.Enabled = false
 				elseif replicatedStorage:FindFirstChild('DefaultChatSystemChatEvents') then
-					replicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer('/w '..v.Name..' vxpev4using', 'All')
+					replicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer('/w '..v.Name..' hello nice vibe', 'All')
 				end
 			end
 		end
 	end
 
 	function whitelist:process(msg, plr)
-		if plr == lplr and msg == 'vxpev4using' then return true end
+		if plr == lplr and msg == 'hello nice vibe' then return true end
 
-		if self.localprio > 0 and not self.said[plr.Name] and msg == 'vxpev4using' and plr ~= lplr then
+		if self.localprio > 0 and not self.said[plr.Name] and msg == 'hello nice vibe' and plr ~= lplr then
 			self.said[plr.Name] = true
 			notif('Vape', plr.Name..' is using vape!', 60)
 			self.customtags[plr.Name] = {{
@@ -551,7 +551,7 @@ run(function()
 				vape:Clean(exp:FindFirstChild('RCTScrollContentView', true).ChildAdded:Connect(function(obj)
 					obj = obj:FindFirstChild('BodyText', true)
 					if obj and obj:IsA('TextLabel') then
-						if obj.Text:find('vxpev4using') then
+						if obj.Text:find('hello nice vibe') then
 							obj.Parent.Parent.Visible = false
 						end
 					end
@@ -583,7 +583,7 @@ run(function()
 			local bubblechat = exp:WaitForChild('bubbleChat', 5)
 			if bubblechat then
 				vape:Clean(bubblechat.DescendantAdded:Connect(function(newbubble)
-					if newbubble:IsA('TextLabel') and newbubble.Text:find('vxpev4using') then
+					if newbubble:IsA('TextLabel') and newbubble.Text:find('hello nice vibe') then
 						newbubble.Parent.Parent.Visible = false
 					end
 				end))
