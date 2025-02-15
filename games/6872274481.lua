@@ -726,7 +726,7 @@ run(function()
 		ConsumeSoul = Knit.Controllers.GrimReaperController.consumeSoul,
 		ConsumeTreeOrb = debug.getproto(Knit.Controllers.EldertreeController.createTreeOrbInteraction, 1),
 		DepositPinata = debug.getproto(debug.getproto(Knit.Controllers.PiggyBankController.KnitStart, 2), 5),
-		DragonBreath = debug.getproto(Knit.Controllers.VoidDragonController.KnitStart, 4),
+		-- DragonBreath = debug.getproto(Knit.Controllers.VoidDragonController.KnitStart, 4),
 		DragonEndFly = debug.getproto(Knit.Controllers.VoidDragonController.flapWings, 1),
 		DragonFly = Knit.Controllers.VoidDragonController.flapWings,
 		DropItem = Knit.Controllers.ItemDropController.dropItemInHand,
@@ -736,7 +736,7 @@ run(function()
 		GuitarHeal = Knit.Controllers.GuitarController.performHeal,
 		HannahKill = debug.getproto(Knit.Controllers.HannahController.KnitStart, 2),
 		HarvestCrop = debug.getproto(debug.getproto(Knit.Controllers.CropController.KnitStart, 4), 1),
-		KaliyahPunch = debug.getproto(debug.getproto(Knit.Controllers.DragonSlayerController.KnitStart, 2), 1),
+		-- KaliyahPunch = debug.getproto(debug.getproto(Knit.Controllers.DragonSlayerController.KnitStart, 2), 1),
 		MageSelect = debug.getproto(Knit.Controllers.MageController.registerTomeInteraction, 1),
 		MinerDig = debug.getproto(Knit.Controllers.MinerController.setupMinerPrompts, 1),
 		PickupItem = Knit.Controllers.ItemDropController.checkForPickup,
@@ -4251,13 +4251,13 @@ run(function()
 			end)
 		end,
 		dragon_slayer = function()
-			kitCollection('KaliyahPunchInteraction', function(v)
-				bedwars.DragonSlayerController:deleteEmblem(v)
-				bedwars.DragonSlayerController:playPunchAnimation(Vector3.zero)
-				bedwars.Client:Get(remotes.KaliyahPunch):SendToServer({
-					target = v
-				})
-			end, 18, true)
+			-- kitCollection('KaliyahPunchInteraction', function(v)
+			-- 	bedwars.DragonSlayerController:deleteEmblem(v)
+			-- 	bedwars.DragonSlayerController:playPunchAnimation(Vector3.zero)
+			-- 	bedwars.Client:Get(remotes.KaliyahPunch):SendToServer({
+			-- 		target = v
+			-- 	})
+			-- end, 18, true)
 		end,
 		farmer_cletus = function()
 			kitCollection('HarvestableCrop', function(v)
@@ -4443,23 +4443,23 @@ run(function()
 				end)
 			end)
 	
-			repeat
-				if bedwars.VoidDragonController.inDragonForm then
-					local plr = entitylib.EntityPosition({
-						Range = 30,
-						Part = 'RootPart',
-						Players = true
-					})
+			-- repeat
+			-- 	if bedwars.VoidDragonController.inDragonForm then
+			-- 		local plr = entitylib.EntityPosition({
+			-- 			Range = 30,
+			-- 			Part = 'RootPart',
+			-- 			Players = true
+			-- 		})
 	
-					if plr then
-						bedwars.Client:Get(remotes.DragonBreath):SendToServer({
-							player = lplr,
-							targetPoint = plr.RootPart.Position
-						})
-					end
-				end
-				task.wait(0.1)
-			until not AutoKit.Enabled
+			-- 		if plr then
+			-- 			bedwars.Client:Get(remotes.DragonBreath):SendToServer({
+			-- 				player = lplr,
+			-- 				targetPoint = plr.RootPart.Position
+			-- 			})
+			-- 		end
+			-- 	end
+			-- 	task.wait(0.1)
+			-- until not AutoKit.Enabled
 		end,
 		warlock = function()
 			local lastTarget

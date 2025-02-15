@@ -3,6 +3,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -863,6 +864,9 @@ run(function()
 		end))
 	end
 
+	repeat
+		task.wait()
+	until lplr:FindFirstChild("chat-controller",true)
 	for i,v in pairs(getgc()) do
 		local info = debug.getinfo(v)
 		if info.what == "Lua" and info.currentline == 48 and info.nups == 3 and info.source == "="..lplr:FindFirstChild("chat-controller",true):GetFullName() then
