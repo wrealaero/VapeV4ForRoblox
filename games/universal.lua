@@ -864,30 +864,29 @@ run(function()
 		end))
 	end
 
-	local c = 0
-	repeat
-		c += 1
-		task.wait()
-	until lplr:FindFirstChild("chat-controller",true) or c == 50
-	if c < 50 then
-		for i,v in pairs(getgc()) do
-			local info = debug.getinfo(v)
-			if info.what == "Lua" and info.currentline == 48 and info.nups == 3 and info.source == "="..lplr:FindFirstChild("chat-controller",true):GetFullName() then
-				local hook
-				hook = hookfunction(v, function(message)
-					if shared.vape then
-						local userLevel, attackable, tags = whitelist:get(playersService:GetPlayerByUserId(message.TextSource.UserId))
-						if tags then
-							local fulltags = ""
-							for _, tag in pairs(tags) do
-								fulltags ..= `<font color="#{Color3.fromRGB(tag.color[1], tag.color[2], tag.color[3]):ToHex():lower()}">[{tag.text}]</font> `
-							end
-							message.PrefixText = fulltags .. message.PrefixText
+	for i,v in pairs(getgc(true)) do
+		if typeof(v) == "table" and rawget(v, "KnitStart") and rawget(v, "getPrefixTags") then
+			local hook
+			hook = hookfunction(v.getPrefixTags, function(_, player)
+				local tag_result = ""
+				if shared.vape then
+					local userLevel, attackable, tags = whitelist:get(player)
+					if tags then
+						for _, tag in pairs(tags) do
+							tag_result ..= `<font color="#{tag.color:ToHex():lower()}">[{tag.text}]</font> `
 						end
 					end
-					return hook(message)
-				end)
-			end
+				end
+
+				local tags = player:FindFirstChild("Tags")
+				if tags then
+					for _, tag in pairs(tags:GetChildren()) do
+						tag_result ..= tag.Value .. " "
+					end
+				end
+				return tag_result
+			end)
+			break
 		end
 	end
 end)
