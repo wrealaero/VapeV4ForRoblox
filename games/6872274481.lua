@@ -1731,6 +1731,10 @@ run(function()
 	local rayCheck = RaycastParams.new()
 	rayCheck.RespectCanCollide = true
 	local up, down, old = 0, 0
+	local FlyAnywayProgressBar, FlyAnywayProgressBarFrame
+	local onground = false
+	local lastonground = false
+	local groundtime
 
 	Fly = vape.Categories.Blatant:CreateModule({
 		Name = 'Fly',
@@ -1738,6 +1742,11 @@ run(function()
 			frictionTable.Fly = callback or nil
 			updateVelocity()
 			if callback then
+				Fly:Clean(runService.PreSimulation:Connect(function()
+					if FlyAnywayProgressBarFrame then
+						FlyAnywayProgressBarFrame.Frame.BackgroundColor3 = Color3.fromHSV(vape.GUIColor.Hue, vape.GUIColor.Sat, vape.GUIColor.Value)
+					end
+				end))
 				up, down, old = 0, 0, bedwars.BalloonController.deflateBalloon
 				bedwars.BalloonController.deflateBalloon = function() end
 				local tpTick, tpToggle, oldy = tick(), true
@@ -1750,6 +1759,7 @@ run(function()
 						bedwars.BalloonController:inflateBalloon()
 					end
 				end))
+				groundtime = (2.6 + tick())
 				Fly:Clean(runService.PreSimulation:Connect(function(dt)
 					if entitylib.isAlive and not InfiniteFly.Enabled and isnetworkowner(entitylib.character.RootPart) then
 						local flyAllowed = (lplr.Character:GetAttribute('InflatedBalloons') and lplr.Character:GetAttribute('InflatedBalloons') > 0) or getgenv().store.matchState == 2
@@ -1767,7 +1777,15 @@ run(function()
 							end
 						end
 
+						print(flyAllowed)
 						if not flyAllowed then
+							local newray = getPlacedBlock(lplr.Character.HumanoidRootPart.Position + Vector3.new(0, (lplr.Character.Humanoid.HipHeight * -2) - 1, 0))
+							onground = newray and true or false
+							if FlyAnywayProgressBarFrame then 
+								FlyAnywayProgressBarFrame.TextLabel.Text = math.max(onground and 2.5 or math.floor((groundtime - tick()) * 10) / 10, 0)..'s'
+								FlyAnywayProgressBarFrame.Frame:TweenSize(UDim2.new(math.max(onground and 2.5 or math.floor((groundtime - tick()) * 10) / 10, 0)/2.5, 0, 0, 20), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, 0.3, true)
+							end
+							lastonground = onground
 							if tpToggle then
 								local airleft = (tick() - entitylib.character.AirTime)
 								if airleft > 2 then
@@ -1793,12 +1811,19 @@ run(function()
 									end
 								end
 							end
+						else
+							onground = true
+							lastonground = true
 						end
 
 						root.CFrame += destination
 						root.AssemblyLinearVelocity = (moveDirection * velo) + Vector3.new(0, mass, 0)
 					end
 				end))
+				if FlyAnywayProgressBarFrame and not flyAllowed and (not balloons) then 
+					FlyAnywayProgressBarFrame.Visible = true
+					FlyAnywayProgressBarFrame.Frame:TweenSize(UDim2.new(1, 0, 0, 20), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, 0, true)
+				end
 				Fly:Clean(inputService.InputBegan:Connect(function(input)
 					if not inputService:GetFocusedTextBox() then
 						if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA then
@@ -1824,6 +1849,10 @@ run(function()
 					end)
 				end
 			else
+				groundtime = (2.6 + tick())
+				if FlyAnywayProgressBarFrame then 
+					FlyAnywayProgressBarFrame.Visible = false
+				end
 				bedwars.BalloonController.deflateBalloon = old
 				if PopBalloons.Enabled and entitylib.isAlive and (lplr.Character:GetAttribute('InflatedBalloons') or 0) > 0 then
 					for _ = 1, 3 do
@@ -1836,6 +1865,43 @@ run(function()
 			return 'Heatseeker'
 		end,
 		Tooltip = 'Makes you go zoom.'
+	})
+	FlyAnywayProgressBar = Fly:CreateToggle({
+		Name = 'Progress Bar',
+		Function = function(calling) 
+			if calling then 
+				FlyAnywayProgressBarFrame = Instance.new('Frame')
+				FlyAnywayProgressBarFrame.AnchorPoint = Vector2.new(0.5, 0)
+				FlyAnywayProgressBarFrame.Position = UDim2.new(0.5, 0, 1, -200)
+				FlyAnywayProgressBarFrame.Size = UDim2.new(0.2, 0, 0, 20)
+				FlyAnywayProgressBarFrame.BackgroundTransparency = 0.5
+				FlyAnywayProgressBarFrame.BorderSizePixel = 0
+				FlyAnywayProgressBarFrame.BackgroundColor3 = Color3.new(1,1,1)
+				FlyAnywayProgressBarFrame.Visible = Fly.Enabled
+				FlyAnywayProgressBarFrame.Parent = vape.gui
+				local FlyAnywayProgressBarFrame2 = FlyAnywayProgressBarFrame:Clone()
+				FlyAnywayProgressBarFrame2.AnchorPoint = Vector2.new(0, 0)
+				FlyAnywayProgressBarFrame2.Position = UDim2.new(0, 0, 0, 0)
+				FlyAnywayProgressBarFrame2.Size = UDim2.new(1, 0, 0, 20)
+				FlyAnywayProgressBarFrame2.BackgroundTransparency = 0
+				FlyAnywayProgressBarFrame2.Visible = true
+				FlyAnywayProgressBarFrame2.Parent = FlyAnywayProgressBarFrame
+				local FlyAnywayProgressBartext = Instance.new('TextLabel')
+				FlyAnywayProgressBartext.Text = '2s'
+				FlyAnywayProgressBartext.Font = Enum.Font.Gotham
+				FlyAnywayProgressBartext.TextStrokeTransparency = 0
+				FlyAnywayProgressBartext.TextColor3 =  Color3.new(0.9, 0.9, 0.9)
+				FlyAnywayProgressBartext.TextSize = 20
+				FlyAnywayProgressBartext.Size = UDim2.new(1, 0, 1, 0)
+				FlyAnywayProgressBartext.BackgroundTransparency = 1
+				FlyAnywayProgressBartext.Position = UDim2.new(0, 0, -1, 0)
+				FlyAnywayProgressBartext.Parent = FlyAnywayProgressBarFrame
+			else
+				if FlyAnywayProgressBarFrame then FlyAnywayProgressBarFrame:Destroy() FlyAnywayProgressBarFrame = nil end
+			end
+		end,
+		HoverText = 'show amount of Fly time',
+		Default = true
 	})
 	Value = Fly:CreateSlider({
 		Name = 'Speed',
@@ -2513,6 +2579,9 @@ run(function()
 				local suc, err = pcall(function()
 					if (not shared.CheatEngineMode) then
 						RangeCirclePart = Instance.new("MeshPart")
+						RangeCirclePart.CanCollide = false
+						RangeCirclePart.CanTouch = false
+						RangeCirclePart.CanQuery = false
 						RangeCirclePart.MeshId = "rbxassetid://3726303797"
 						if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
 							RangeCirclePart.Color = GuiLibrary.GUICoreColor
