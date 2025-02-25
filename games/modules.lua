@@ -1072,7 +1072,7 @@ run(function()
 															end
 														end
 					
-														lplr.Character:WaitForChild("HumanoidRootPart").CFrame = lplr.Character:WaitForChild("HumanoidRootPart").CFrame + Vector3.new(0,100000,0)
+														lplr.Character:WaitForChild("HumanoidRootPart").CFrame = lplr.Character:WaitForChild("HumanoidRootPart").CFrame + Vector3.new(0,-100,0)
 					
 														GodMode:Clean(game:GetService("RunService").RenderStepped:Connect(function()
 															if Clone ~= nil and Clone:FindFirstChild("HumanoidRootPart") then
@@ -1190,12 +1190,18 @@ run(function()
                 
                 local bed = getbed();
                 assert(bed, 'lmao');
-				pcall(function()
-                    -- LocalPlayer.Character.Humanoid.Health = 0
-					game:GetService("VirtualInputManager"):SendKeyEvent(true, "C" , false , game)
+				local lastDeathTPEnabled = DeathTPEnabled
+                pcall(function()
+					DeathTPEnabled = false
+                    lplr.Character.Humanoid.Health = 0
                 end)
-				task.wait(6.3)
-                tween:Create(v.PrimaryPart, TweenInfo.new(1.35), {CFrame = bed.Bed.CFrame + Vector3.new(0, 20, 0)}):Play();
+                local con;
+                con = lplr.CharacterAdded:Connect(function(v)
+                    con:Disconnect();
+                    task.wait(0.2)
+                    tween:Create(v.PrimaryPart, TweenInfo.new(1.35), {CFrame = bed.Bed.CFrame + Vector3.new(0, 20, 0)}):Play();
+					DeathTPEnabled = lastDeathTPEnabled
+                end);
             end
         end
     })
@@ -1230,134 +1236,192 @@ run(function()
                 
                 local targetPlayer = getClosestEnemy()
                 assert(targetPlayer, "No enemy players found!")
-
-                pcall(function()
-                    -- LocalPlayer.Character.Humanoid.Health = 0
-					game:GetService("VirtualInputManager"):SendKeyEvent(true, "C" , false , game)
-                end)
-				task.wait(6.3)
                 
-                local targetPosition = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
-				tweenService:Create(newCharacter.PrimaryPart, TweenInfo.new(1.1 + math.random(-2, 2)/10), {CFrame = targetPosition}):Play()
+				local lastDeathTPEnabled = DeathTPEnabled
+                pcall(function()
+					DeathTPEnabled = false
+                    LocalPlayer.Character.Humanoid.Health = 0
+                end)
+                
+                local connection
+                connection = LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+                    connection:Disconnect()
+                    local targetPosition = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
+					task.wait(0.3)
+                    tweenService:Create(newCharacter.PrimaryPart, TweenInfo.new(1.1 + math.random(-2, 2)/10), {CFrame = targetPosition}):Play()
+					DeathTPEnabled = lastDeathTPEnabled
+                end)
             end
         end
     })
+
+	local DeathTP
+	local LastPos = nil
+	DeathTP = vape.Categories.Modules:CreateModule({
+        Name = "DeathTP",
+        Description = "Teleports you to the lastest death position",
+        Function = function(callback)
+            DeathTPEnabled = callback
+        end
+    })
+	local function setupEvent(char)
+		task.wait(0.2)
+		if DeathTPEnabled and LastPos and LastPos.Y > 20 then
+			tweenService:Create(char.PrimaryPart, TweenInfo.new(0.75), {CFrame = LastPos}):Play()
+		end
+		if char:FindFirstChildOfClass("Humanoid") then
+			if DeathTP then
+				DeathTP:Clean(char:FindFirstChildOfClass("Humanoid").Died:Once(function()
+					LastPos = char.PrimaryPart and char.PrimaryPart.CFrame or nil
+				end))
+			end
+		end
+	end
+	DeathTP:Clean(lplr.CharacterAdded:Connect(setupEvent))
+	if lplr.Character then
+		setupEvent(lplr.Character)
+	end
 end)
 
 
--- run(function()
--- 	local Autowin = {Enabled = false}
--- 	local AutowinNotification = {Enabled = true}
--- 	local bedtween
--- 	local playertween
--- 	Autowin = vape.Categories.Modules:CreateModule({
--- 		Name = "Autowin",
--- 		ExtraText = function() return store.queueType:find("5v5") and "BedShield" or "Normal" end,
--- 		Function = function(callback)
--- 			if callback then
--- 				task.spawn(function()
--- 					if store.matchState == 0 then repeat task.wait() until store.matchState ~= 0 or not Autowin.Enabled end
--- 					if not Autowin.Enabled then return end
--- 					vapeAssert(not store.queueType:find("skywars"), "Autowin", "Skywars not supported.", 7, true, true, "Autowin")
--- 					if isAlive(lplr, true) then
--- 						lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
--- 						lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
--- 					end
--- 					Autowin:Clean(runService.Heartbeat:Connect(function()
--- 						pcall(function()
--- 							if not isnetworkowner(lplr.Character:FindFirstChild("HumanoidRootPart")) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), FindEnemyBed()) > 75 or not FindEnemyBed()) then
--- 								if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and (not store.matchState == 2) then
--- 									lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
--- 									lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
--- 								end
--- 							end
--- 						end)
--- 					end))
--- 					Autowin:Clean(lplr.CharacterAdded:Connect(function()
--- 						if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
--- 						local bed = FindEnemyBed()
--- 						if bed and (bed:GetAttribute("BedShieldEndTime") and bed:GetAttribute("BedShieldEndTime") < workspace:GetServerTimeNow() or not bed:GetAttribute("BedShieldEndTime")) then
--- 						bedtween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.65, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
--- 						task.wait(0.1)
--- 						bedtween:Play()
--- 						bedtween.Completed:Wait()
--- 						task.spawn(function()
--- 						task.wait(1.5)
--- 						local magnitude = GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), bed)
--- 						if magnitude >= 50 and FindTeamBed() and Autowin.Enabled then
--- 							lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
--- 							lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
--- 						end
--- 						end)
--- 						if AutowinNotification.Enabled then
--- 							local bedname = XStore.bedtable[bed] or "unknown"
--- 							task.spawn(InfoNotification, "Autowin", "Destroying "..bedname:lower().." team's bed", 5)
--- 						end
--- 						repeat task.wait() until FindEnemyBed() ~= bed or not isAlive()
--- 						if FindTarget(45, store.blockRaycast) and FindTarget(45, store.blockRaycast).RootPart and isAlive() then
--- 							if AutowinNotification.Enabled then
--- 								local team = XStore.bedtable[bed] or "unknown"
--- 								task.spawn(InfoNotification, "Autowin", "Killing "..team:lower().." team's teamates", 5)
--- 							end
--- 							repeat
--- 							local target = FindTarget(45, store.blockRaycast)
--- 							if not target.RootPart then break end
--- 							playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(1.1), {CFrame = target.RootPart.CFrame + Vector3.new(0, 2, 0)})
--- 							playertween:Play()
--- 							task.wait()
--- 							until not (FindTarget(45, store.blockRaycast) and FindTarget(45, store.blockRaycast).RootPart) or not Autowin.Enabled or not isAlive()
--- 						end
--- 						if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
--- 							lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
--- 							lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
--- 						end
--- 						elseif FindTarget(nil, store.blockRaycast) and FindTarget(nil, store.blockRaycast).RootPart then
--- 							task.wait()
--- 							local target = FindTarget(nil, store.blockRaycast)
--- 							playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(1.1, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
--- 							playertween:Play()
--- 							if AutowinNotification.Enabled then
--- 								task.spawn(InfoNotification, "Autowin", "Killing "..target.Player.DisplayName.." ("..(target.Player.Team and target.Player.Team.Name or "neutral").." Team)", 5)
--- 							end
--- 							playertween.Completed:Wait()
--- 							if not Autowin.Enabled then return end
--- 								if FindTarget(50, store.blockRaycast).RootPart and isAlive() then
--- 									repeat
--- 									target = FindTarget(50, store.blockRaycast)
--- 									if not target.RootPart or not isAlive() then break end
--- 									playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.1), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
--- 									playertween:Play()
--- 									task.wait()
--- 									until not (FindTarget(50, store.blockRaycast) and FindTarget(50, store.blockRaycast).RootPart) or (not Autowin.Enabled) or (not isAlive())
--- 								end
--- 							if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
--- 								lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
--- 								lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
--- 							end
--- 						else
--- 						if store.matchState == 2 then return end
--- 						lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
--- 						lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
--- 						end
--- 					end))
--- 					Autowin:Clean(lplr.CharacterAdded:Connect(function()
--- 						if (not isAlive(lplr, true)) then repeat task.wait() until isAlive(lplr, true) end
--- 						if (store.matchState ~= 2) then return end
--- 						--[[local oldpos = lplr.Character:WaitForChild("HumanoidRootPart").CFrame
--- 						repeat 
--- 							lplr.Character:WaitForChild("HumanoidRootPart").CFrame = oldpos
--- 							task.wait()
--- 						until (not isAlive(lplr, true)) or (not Autowin.Enabled)--]]
--- 					end))
--- 				end)
--- 			else
--- 				pcall(function() playertween:Cancel() end)
--- 				pcall(function() bedtween:Cancel() end)
--- 			end
--- 		end,
--- 		HoverText = "best paid autowin 2023!1!!! rel11!11!1"
--- 	})
--- end)
+run(function()
+	local Autowin = {Enabled = false}
+	local AutowinNotification = {Enabled = true}
+	local bedtween
+	local playertween
+	Autowin = vape.Categories.Modules:CreateModule({
+		Name = "Autowin",
+		ExtraText = function() return store.queueType:find("5v5") and "BedShield" or "Normal" end,
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					if store.matchState == 0 then repeat task.wait() until store.matchState ~= 0 or not Autowin.Enabled end
+					if not Autowin.Enabled then return end
+					vapeAssert(not store.queueType:find("skywars"), "Autowin", "Skywars not supported.", 7, true, true, "Autowin")
+					if isAlive(lplr, true) then
+						lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+						lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+					end
+					Autowin:Clean(runService.Heartbeat:Connect(function()
+						pcall(function()
+							if not isnetworkowner(lplr.Character:FindFirstChild("HumanoidRootPart")) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), FindEnemyBed()) > 75 or not FindEnemyBed()) then
+								if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and (not store.matchState == 2) then
+									lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+									lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+								end
+							end
+						end)
+					end))
+					Autowin:Clean(lplr.CharacterAdded:Connect(function()
+						if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
+						local bed = FindEnemyBed()
+						if bed and (bed:GetAttribute("BedShieldEndTime") and bed:GetAttribute("BedShieldEndTime") < workspace:GetServerTimeNow() or not bed:GetAttribute("BedShieldEndTime")) then
+						bedtween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.65, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
+						task.wait(0.1)
+						bedtween:Play()
+						bedtween.Completed:Wait()
+						task.spawn(function()
+						task.wait(1.5)
+						local magnitude = GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), bed)
+						if magnitude >= 50 and FindTeamBed() and Autowin.Enabled then
+							lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+							lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+						end
+						end)
+						if AutowinNotification.Enabled then
+							local bedname = XStore.bedtable[bed] or "unknown"
+							task.spawn(InfoNotification, "Autowin", "Destroying "..bedname:lower().." team's bed", 5)
+						end
+						repeat task.wait() until FindEnemyBed() ~= bed or not isAlive()
+						if FindTarget(45, store.blockRaycast) and FindTarget(45, store.blockRaycast).RootPart and isAlive() then
+							if AutowinNotification.Enabled then
+								local team = XStore.bedtable[bed] or "unknown"
+								task.spawn(InfoNotification, "Autowin", "Killing "..team:lower().." team's teamates", 5)
+							end
+							repeat
+							local target = FindTarget(45, store.blockRaycast)
+							if not target.RootPart then break end
+							playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(1.1), {CFrame = target.RootPart.CFrame + Vector3.new(0, 2, 0)})
+							playertween:Play()
+							task.wait()
+							until not (FindTarget(45, store.blockRaycast) and FindTarget(45, store.blockRaycast).RootPart) or not Autowin.Enabled or not isAlive()
+						end
+						if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
+							lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+							lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+						end
+						elseif FindTarget(nil, store.blockRaycast) and FindTarget(nil, store.blockRaycast).RootPart then
+							task.wait()
+							local target = FindTarget(nil, store.blockRaycast)
+							playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(1.1, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+							playertween:Play()
+							if AutowinNotification.Enabled then
+								task.spawn(InfoNotification, "Autowin", "Killing "..target.Player.DisplayName.." ("..(target.Player.Team and target.Player.Team.Name or "neutral").." Team)", 5)
+							end
+							playertween.Completed:Wait()
+							if not Autowin.Enabled then return end
+								if FindTarget(50, store.blockRaycast).RootPart and isAlive() then
+									repeat
+									target = FindTarget(50, store.blockRaycast)
+									if not target.RootPart or not isAlive() then break end
+									playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.1), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+									playertween:Play()
+									task.wait()
+									until not (FindTarget(50, store.blockRaycast) and FindTarget(50, store.blockRaycast).RootPart) or (not Autowin.Enabled) or (not isAlive())
+								end
+							if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
+								lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+								lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+							end
+						else
+						if store.matchState == 2 then return end
+						lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+						lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+						end
+					end))
+					Autowin:Clean(lplr.CharacterAdded:Connect(function()
+						if (not isAlive(lplr, true)) then repeat task.wait() until isAlive(lplr, true) end
+						if (store.matchState ~= 2) then return end
+						--[[local oldpos = lplr.Character:WaitForChild("HumanoidRootPart").CFrame
+						repeat 
+							lplr.Character:WaitForChild("HumanoidRootPart").CFrame = oldpos
+							task.wait()
+						until (not isAlive(lplr, true)) or (not Autowin.Enabled)--]]
+					end))
+				end)
+			else
+				pcall(function() playertween:Cancel() end)
+				pcall(function() bedtween:Cancel() end)
+			end
+		end,
+		HoverText = "best paid autowin 2023!1!!! rel11!11!1"
+	})
+end)
+
+run(function()
+	local InfernalKill = {Enabled = false}
+	InfernalKill = vape.Categories.Modules:CreateModule({
+		["Name"] = "AmberExploit",
+		["Function"] = function(callback)
+			if callback then
+				repeat
+				wait(0.001)
+				function getNil(name,class) for _,v in next, getnilinstances() do if v.ClassName==class and v.Name==name then return v;end end end
+				local args = {
+					[1] = {
+						["chargeTime"] = 0.9,
+						["player"] = game:GetService("Players").LocalPlayer,
+						["weapon"] = getNil("infernal_saber", "Accessory")
+					}
+				}
+	
+				game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("HellBladeRelease"):FireServer(unpack(args))
+			until not InfernalKill["Enabled"]
+		end
+			end,
+			["Description"] = "Amber Exploit"
+		})
+	end)
 
 run(function()
     local NightmareEventButton
