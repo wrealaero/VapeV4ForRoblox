@@ -977,7 +977,7 @@ end)
 run(function()
 	local InfernalKill = {Enabled = false}
 	InfernalKill = vape.Categories.Modules:CreateModule({
-		["Name"] = "AmberExploit",
+		["Name"] = "EmberExploit",
 		["Function"] = function(callback)
 			if callback then
 				repeat
