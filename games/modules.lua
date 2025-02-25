@@ -763,7 +763,7 @@ run(function()
 															end
 														end
 					
-														lplr.Character:WaitForChild("HumanoidRootPart").CFrame = lplr.Character:WaitForChild("HumanoidRootPart").CFrame + Vector3.new(0,-100,0)
+														lplr.Character:WaitForChild("HumanoidRootPart").CFrame = lplr.Character:WaitForChild("HumanoidRootPart").CFrame + Vector3.new(0,100,0)
 					
 														GodMode:Clean(game:GetService("RunService").RenderStepped:Connect(function()
 															if Clone ~= nil and Clone:FindFirstChild("HumanoidRootPart") then
@@ -977,7 +977,7 @@ end)
 run(function()
 	local InfernalKill = {Enabled = false}
 	InfernalKill = vape.Categories.Modules:CreateModule({
-		["Name"] = "EmberExploit",
+		["Name"] = "AmberExploit",
 		["Function"] = function(callback)
 			if callback then
 				repeat
