@@ -1761,6 +1761,10 @@ run(function()
 				end))
 				groundtime = (2.6 + tick())
 				Fly:Clean(runService.PreSimulation:Connect(function(dt)
+					if math.floor((groundtime - tick()) * 10) / 10, 0) == 0 then
+						groundtime = (2.6 + tick())
+					end
+
 					if entitylib.isAlive and not InfiniteFly.Enabled and isnetworkowner(entitylib.character.RootPart) then
 						local flyAllowed = (lplr.Character:GetAttribute('InflatedBalloons') and lplr.Character:GetAttribute('InflatedBalloons') > 0) or getgenv().store.matchState == 2
 						local mass = (1.5 + (flyAllowed and 6 or 0) * (tick() % 0.4 < 0.2 and -1 or 1)) + ((up + down) * VerticalValue.Value)
@@ -1777,7 +1781,6 @@ run(function()
 							end
 						end
 
-						print(flyAllowed)
 						if not flyAllowed then
 							local newray = getPlacedBlock(lplr.Character.HumanoidRootPart.Position + Vector3.new(0, (lplr.Character.Humanoid.HipHeight * -2) - 1, 0))
 							onground = newray and true or false
