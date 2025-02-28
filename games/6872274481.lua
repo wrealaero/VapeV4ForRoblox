@@ -1763,7 +1763,7 @@ run(function()
 				Fly:Clean(runService.PreSimulation:Connect(function(dt)
 					if (math.floor((groundtime - tick()) * 10) / 10) == 0 then
 						groundtime = (2.6 + tick())
-						FlyAnywayProgressBarFrame.Frame:TweenSize(UDim2.new(1, 0, 0, 20), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, 0, true)
+						FlyAnywayProgressBarFrame.Frame.Size = UDim2.new(1, 0, 0, 20)
 					end
 
 					if entitylib.isAlive and not InfiniteFly.Enabled and isnetworkowner(entitylib.character.RootPart) then
