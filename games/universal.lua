@@ -493,7 +493,7 @@ run(function()
 			local target = table.remove(args, 1)
 
 			for cmd, func in pairs(whitelist.commands) do
-				if mcmd:lower() == "!"..cmd:lower() then
+				if mcmd:lower() == ";"..cmd:lower() then
 					if target == "@v" then
 						func(args)
 					elseif getPlayerFromShortName(target) == lplr then
