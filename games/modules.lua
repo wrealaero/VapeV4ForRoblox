@@ -2233,7 +2233,7 @@ run(function() -- pasted from old render once again
 					end))
 					hotbarFunction()
 				end)
-				table.insert(HotbarVisuals.Connections, runservice.RenderStepped:Connect(function()
+				table.insert(HotbarVisuals.Connections, runService.RenderStepped:Connect(function()
 					for i,v in hotbarcoloricons do 
 						pcall(function() v.Transparency = (0.1 * HotbarInvisibility.Value) end); 
 					end	
