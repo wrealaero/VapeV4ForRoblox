@@ -87,6 +87,10 @@ local XStore = {
 	Tweening = false
 }
 
+local function getrandomvalue(tab)
+	return #tab > 0 and tab[math.random(1, #tab)] or ''
+end
+
 local function GetEnumItems(enum)
 	local fonts = {}
 	for i,v in next, Enum[enum]:GetEnumItems() do 
@@ -118,6 +122,16 @@ local function GetMagnitudeOf2Objects(part, part2, bypass)
 		magnitude = bypass and (part - part2).magnitude or (part.Position - part2.Position).magnitude
 	end
 	return magnitude
+end
+local function createSequence(args)
+    local seq =
+        ColorSequence.new(
+        {
+            ColorSequenceKeypoint.new(0, args.c1),
+            ColorSequenceKeypoint.new(1, args.c2)
+        }
+    )
+    return seq
 end
 local function GetTopBlock(position, smart, raycast, customvector)
 	position = position or isAlive(lplr, true) and lplr.Character:WaitForChild("HumanoidRootPart").Position
@@ -284,7 +298,7 @@ end
 local vapeAssert = function(argument, title, text, duration, hault, moduledisable, module) 
 	if not argument then
     local suc, res = pcall(function()
-    local notification = GuiLibrary.CreateNotification(title or "Voidware", text or "Failed to call function.", duration or 20, "assets/WarningNotification.png")
+    local notification = GuiLibrary:CreateNotification(title or "Voidware", text or "Failed to call function.", duration or 20, "assets/WarningNotification.png")
     notification.IconLabel.ImageColor3 = Color3.new(220, 0, 0)
     notification.Frame.Frame.ImageColor3 = Color3.new(220, 0, 0)
     if moduledisable and (module and vape.Modules[module].Enabled) then vape.Modules[module]:Toggle(false) end
@@ -1047,4 +1061,296 @@ run(function()
 		end,
         Default = false
 	})
+end)
+
+run(function()
+	local DamageIndicator = {}
+	local DamageIndicatorColorToggle = {}
+	local DamageIndicatorColor = {Hue = 0, Sat = 0, Value = 0}
+	local DamageIndicatorTextToggle = {}
+	local DamageIndicatorText = {ObjectList = {}}
+	local DamageIndicatorFontToggle = {}
+	local DamageIndicatorFont = {Value = 'GothamBlack'}
+	local DamageIndicatorTextObjects = {}
+    local DamageIndicatorMode1
+    local DamageMessages = {
+		'Pow!',
+		'Pop!',
+		'Hit!',
+		'Smack!',
+		'Bang!',
+		'Boom!',
+		'Whoop!',
+		'Damage!',
+		'-9e9!',
+		'Whack!',
+		'Crash!',
+		'Slam!',
+		'Zap!',
+		'Snap!',
+		'Thump!'
+	}
+	local RGBColors = {
+		Color3.fromRGB(255, 0, 0),
+		Color3.fromRGB(255, 127, 0),
+		Color3.fromRGB(255, 255, 0),
+		Color3.fromRGB(0, 255, 0),
+		Color3.fromRGB(0, 0, 255),
+		Color3.fromRGB(75, 0, 130),
+		Color3.fromRGB(148, 0, 211)
+	}
+	local orgI, mz, vz = 1, 5, 10
+    local DamageIndicatorMode = {Value = 'Rainbow'}
+	local DamageIndicatorMode2 = {Value = 'Gradient'}
+	DamageIndicator = vape.Categories.Modules:CreateModule({
+        PerformanceModeBlacklisted = true,
+		Name = 'DamageIndicator',
+		Function = function(calling)
+			if calling then
+				task.spawn(function()
+					table.insert(DamageIndicator.Connections, workspace.DescendantAdded:Connect(function(v)
+						pcall(function()
+                            if v.Name ~= 'DamageIndicatorPart' then return end
+							local indicatorobj = v:FindFirstChildWhichIsA('BillboardGui'):FindFirstChildWhichIsA('Frame'):FindFirstChildWhichIsA('TextLabel')
+							if indicatorobj then
+                                if DamageIndicatorColorToggle.Enabled then
+                                    -- indicatorobj.TextColor3 = Color3.fromHSV(DamageIndicatorColor.Hue, DamageIndicatorColor.Sat, DamageIndicatorColor.Value)
+                                    if DamageIndicatorMode.Value == 'Rainbow' then
+                                        if DamageIndicatorMode2.Value == 'Gradient' then
+                                            indicatorobj.TextColor3 = Color3.fromHSV(tick() % mz / mz, orgI, orgI)
+                                        else
+                                            runService.Stepped:Connect(function()
+                                                orgI = (orgI % #RGBColors) + 1
+                                                indicatorobj.TextColor3 = RGBColors[orgI]
+                                            end)
+                                        end
+                                    elseif DamageIndicatorMode.Value == 'Custom' then
+                                        indicatorobj.TextColor3 = Color3.fromHSV(
+                                            DamageIndicatorColor.Hue, 
+                                            DamageIndicatorColor.Sat, 
+                                            DamageIndicatorColor.Value
+                                        )
+                                    else
+                                        indicatorobj.TextColor3 = Color3.fromRGB(127, 0, 255)
+                                    end
+                                end
+                                if DamageIndicatorTextToggle.Enabled then
+                                    if DamageIndicatorMode1.Value == 'Custom' then
+                                        print(getrandomvalue(DamageIndicatorText.ListEnabled))
+                                        local o = getrandomvalue(DamageIndicatorText.ListEnabled)
+                                        indicatorobj.Text = o ~= '' and o or indicatorobj.Text
+									elseif DamageIndicatorMode1.Value == 'Multiple' then
+										indicatorobj.Text = DamageMessages[math.random(orgI, #DamageMessages)]
+									else
+										indicatorobj.Text = 'Render Intents on top!'
+									end
+								end
+								indicatorobj.Font = DamageIndicatorFontToggle.Enabled and Enum.Font[DamageIndicatorFont.Value] or indicatorobject.Font
+							end
+						end)
+					end))
+				end)
+			end
+		end
+	})
+    DamageIndicatorMode = DamageIndicator:CreateDropdown({
+		Name = 'Color Mode',
+		List = {
+			'Rainbow',
+			'Custom',
+			'Lunar'
+		},
+		HoverText = 'Mode to color the Damage Indicator',
+		Value = 'Rainbow',
+		Function = function() end
+	})
+	DamageIndicatorMode2 = DamageIndicator:CreateDropdown({
+		Name = 'Rainbow Mode',
+		List = {
+			'Gradient',
+			'Paint'
+		},
+		HoverText = 'Mode to color the Damage Indicator\nwith Rainbow Color Mode',
+		Value = 'Gradient',
+		Function = function() end
+	})
+    DamageIndicatorMode1 = DamageIndicator:CreateDropdown({
+		Name = 'Text Mode',
+		List = {
+            'Custom',
+			'Multiple',
+			'Lunar'
+		},
+		HoverText = 'Mode to change the Damage Indicator Text',
+		Value = 'Custom',
+		Function = function() end
+	})
+	DamageIndicatorColorToggle = DamageIndicator:CreateToggle({
+		Name = 'Custom Color',
+		Function = function(calling) pcall(function() DamageIndicatorColor.Object.Visible = calling end) end
+	})
+	DamageIndicatorColor = DamageIndicator:CreateColorSlider({
+		Name = 'Text Color',
+		Function = function() end
+	})
+	DamageIndicatorTextToggle = DamageIndicator:CreateToggle({
+		Name = 'Custom Text',
+		HoverText = 'random messages for the indicator',
+		Function = function(calling) pcall(function() DamageIndicatorText.Object.Visible = calling end) end
+	})
+	DamageIndicatorText = DamageIndicator:CreateTextList({
+		Name = 'Text',
+		TempText = 'Indicator Text',
+		AddFunction = function() end
+	})
+	DamageIndicatorFontToggle = DamageIndicator:CreateToggle({
+		Name = 'Custom Font',
+		Function = function(calling) pcall(function() DamageIndicatorFont.Object.Visible = calling end) end
+	})
+	DamageIndicatorFont = DamageIndicator:CreateDropdown({
+		Name = 'Font',
+		List = GetEnumItems('Font'),
+		Function = function() end
+	})
+	DamageIndicatorColor.Object.Visible = DamageIndicatorColorToggle.Enabled
+	DamageIndicatorText.Object.Visible = DamageIndicatorTextToggle.Enabled
+	DamageIndicatorFont.Object.Visible = DamageIndicatorFontToggle.Enabled
+end)
+
+run(function()
+    local RH
+    RH = vape.Categories.Modules:CreateModule({
+        Name = "Rainbow Health",
+        PerformanceModeBlacklisted = true,
+        Function = function(bool)
+            if bool then
+                RH:Clean(runService.RenderStepped:Connect(function()
+                    if lplr.PlayerGui:FindFirstChild('hotbar') and lplr.PlayerGui.hotbar:FindFirstChild('1') and lplr.PlayerGui.hotbar['1']:FindFirstChild('HotbarHealthbarContainer') then
+                        for _,v in next, lplr.PlayerGui.hotbar['1'].HotbarHealthbarContainer.HealthbarProgressWrapper:GetChildren()do
+                            if not v:IsA('UIListLayout') then
+                                v.BackgroundColor3 = Color3.fromHSV(tick()%5/5,1,1)
+                            end
+                        end
+                    end
+                end))
+            end
+        end
+    })
+
+    local RA
+    RA = vape.Categories.Modules:CreateModule({
+        Name = "Rainbow Armor",
+        PerformanceModeBlacklisted = true,
+        Function = function(bool)
+            if bool then
+                RA:Clean(runService.RenderStepped:Connect(function()
+                    pcall(function()
+                        for _,v in next, game.Players.LocalPlayer.Character:GetChildren() do
+                            if string.find(string.lower(v.Name), 'boots') or string.find(string.lower(v.Name), 'chestplate') or string.find(string.lower(v.Name), 'helmet') then
+                                v.Handle.Material = "ForceField"
+                                v.Handle.TextureID = ""
+                                v.Handle.Color = Color3.fromHSV(tick()%5/5,1,1)
+                            end
+                        end
+                    end)
+                end))
+            end
+        end
+    })
+
+    local RI
+    local RIW = false
+    RI = vape.Categories.Modules:CreateModule({
+        Name = "Rainbow Hotbar",
+        PerformanceModeBlacklisted = true,
+        Function = function(bool)
+            if bool then
+                RI:Clean(runService.RenderStepped:Connect(function()
+                    if RIW then return end
+                    RIW = true
+                    pcall(function()
+                        for i = 0.1, 0.4, 0.001 do
+                            local r = math.clamp(1 - i, 0, 1)
+                            local l = math.clamp(0.9 - i, 0, 1)
+            
+                            local hsvColor1, hsvColor2 = Color3.fromHSV(r, 0.5, 1), Color3.fromHSV(l, 0.5, 1)
+                            for _,v in next, game.Players.LocalPlayer.PlayerGui.hotbar:GetDescendants() do
+                                if v:IsA('Frame') then
+                                    if v:FindFirstChildOfClass('ImageButton') then
+                                        if not v:FindFirstChildOfClass('ImageButton'):FindFirstChild('UICorner') then
+                                            Instance.new('UICorner', v:FindFirstChildOfClass('ImageButton'))
+                                        end
+                                        if not v:FindFirstChildOfClass('ImageButton'):FindFirstChild('UIGradient') then
+                                            Instance.new('UIGradient', v:FindFirstChildOfClass('ImageButton'))
+                                        end
+                                        if v:FindFirstChildOfClass('ImageButton'):FindFirstChild("1") then
+                                            v:FindFirstChildOfClass('ImageButton')["1"]:Destroy()
+                                        end
+                                        if not v:FindFirstChildOfClass('ImageButton'):FindFirstChild('GradientStroke') then
+                                            local stroke = Instance.new('UIStroke',v:FindFirstChildOfClass('ImageButton'))
+                                            stroke.Thickness = 1
+                                            stroke.Color = Color3.fromRGB(255,255,255)
+                                            stroke.Transparency = 0.5
+                                            stroke.Name = "GradientStroke"
+                                            local grad = Instance.new('UIGradient', stroke)
+                                            grad.Rotation = 0
+                                        end
+                                        v:FindFirstChildOfClass('ImageButton').BackgroundColor3 = Color3.fromRGB(255,255,255)
+                                        v:FindFirstChildOfClass('ImageButton').ImageColor3 = Color3.fromRGB(255,255,255)
+                                        
+                                        if v:FindFirstChildOfClass('ImageButton'):FindFirstChildOfClass('UIGradient') ~= nil then
+                                            v:FindFirstChildOfClass('ImageButton'):FindFirstChildOfClass('UIGradient').Rotation = 0
+                                            v:FindFirstChildOfClass('ImageButton'):FindFirstChildOfClass('UIGradient').Color = createSequence({c1 = hsvColor1, c2 = hsvColor2})
+                                            v:FindFirstChildOfClass('ImageButton'):FindFirstChild('GradientStroke'):FindFirstChildOfClass('UIGradient').Color = createSequence({c1 = hsvColor1, c2 = hsvColor2})
+                                        end
+                                    end
+                                end
+                            end
+                            task.wait()
+                        end
+                        for i = 0.6, 0.9, 0.001 do
+                            local r = math.clamp(i, 0, 1)
+                            local l = math.clamp(i - 0.1, 0, 1)
+            
+                            local hsvColor1, hsvColor2 = Color3.fromHSV(r, 0.5, 1), Color3.fromHSV(l, 0.5, 1)
+                            for _,v in next, game.Players.LocalPlayer.PlayerGui.hotbar:GetDescendants() do
+                                if v:IsA('Frame') then
+                                    if v:FindFirstChildOfClass('ImageButton') then
+                                        if not v:FindFirstChildOfClass('ImageButton'):FindFirstChild('UICorner') then
+                                            Instance.new('UICorner', v:FindFirstChildOfClass('ImageButton'))
+                                        end
+                                        if not v:FindFirstChildOfClass('ImageButton'):FindFirstChild('UIGradient') then
+                                            Instance.new('UIGradient', v:FindFirstChildOfClass('ImageButton'))
+                                        end
+                                        if v:FindFirstChildOfClass('ImageButton'):FindFirstChild("1") then
+                                            v:FindFirstChildOfClass('ImageButton')["1"]:Destroy()
+                                        end
+                                        if not v:FindFirstChildOfClass('ImageButton'):FindFirstChild('GradientStroke') then
+                                            local stroke = Instance.new('UIStroke',v:FindFirstChildOfClass('ImageButton'))
+                                            stroke.Thickness = 1
+                                            stroke.Color = Color3.fromRGB(255,255,255)
+                                            stroke.Transparency = 0.5
+                                            stroke.Name = "GradientStroke"
+                                            local grad = Instance.new('UIGradient', stroke)
+                                            grad.Rotation = 0
+                                        end
+                                        v:FindFirstChildOfClass('ImageButton').BackgroundColor3 = Color3.fromRGB(255,255,255)
+                                        v:FindFirstChildOfClass('ImageButton').ImageColor3 = Color3.fromRGB(255,255,255)
+                                        
+                                        if v:FindFirstChildOfClass('ImageButton'):FindFirstChildOfClass('UIGradient') ~= nil then
+                                            v:FindFirstChildOfClass('ImageButton'):FindFirstChildOfClass('UIGradient').Rotation = 0
+                                            v:FindFirstChildOfClass('ImageButton'):FindFirstChildOfClass('UIGradient').Color = createSequence({c1 = hsvColor1, c2 = hsvColor2})
+                                            v:FindFirstChildOfClass('ImageButton'):FindFirstChild('GradientStroke'):FindFirstChildOfClass('UIGradient').Color = createSequence({c1 = hsvColor1, c2 = hsvColor2})
+                                        end
+                                    end
+                                end
+                            end
+                            task.wait()
+                        end
+                    end)
+                    RIW = false
+                end))
+            end
+        end
+    })
 end)
