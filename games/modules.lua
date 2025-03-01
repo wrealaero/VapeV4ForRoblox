@@ -259,90 +259,11 @@ local function FindItemDrop(item)
 	end
 	return itemdist
 end
-local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
-	local whitelist = vape.Libraries.whitelist
-	local sort, entity = healthmethod and math.huge or dist or math.huge, {}
-	local function abletocalculate() return lplr.Character and lplr.Character:FindFirstChild("HumanoidRootPart") end
-	local sortmethods = {Normal = function(entityroot, entityhealth) return abletocalculate() and GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), entityroot) < sort end, Health = function(entityroot, entityhealth) return abletocalculate() and entityhealth < sort end}
-	local sortmethod = healthmethod and "Health" or "Normal"
-	local function raycasted(entityroot) return abletocalculate() and blockRaycast and game.Workspace:Raycast(entityroot.Position, Vector3.new(0, -2000, 0), store.blockRaycast) or not blockRaycast and true or false end
-	for i,v in pairs(playersService:GetPlayers()) do
-		if v ~= lplr and abletocalculate() and isAlive(v) and v.Team ~= lplr.Team then
-			if not ({whitelist:get(v)})[2] then 
-				continue
-			end
-			if sortmethods[sortmethod](v.Character.HumanoidRootPart, v.Character:GetAttribute("Health") or v.Character.Humanoid.Health) and raycasted(v.Character.HumanoidRootPart) then
-				sort = healthmethod and v.Character.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), v.Character.HumanoidRootPart)
-				entity.Player = v
-				entity.Human = true 
-				entity.RootPart = v.Character.HumanoidRootPart
-				entity.Humanoid = v.Character.Humanoid
-			end
-		end
-	end
-	if includemobs then
-		local maxdistance = dist or math.huge
-		for i,v in pairs(store.pots) do
-			if abletocalculate() and v.PrimaryPart and GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), v.PrimaryPart) < maxdistance then
-			entity.Player = {Character = v, Name = "PotEntity", DisplayName = "PotEntity", UserId = 1}
-			entity.Human = false
-			entity.RootPart = v.PrimaryPart
-			entity.Humanoid = {Health = 1, MaxHealth = 1}
-			end
-		end
-		for i,v in pairs(collectionService:GetTagged("DiamondGuardian")) do 
-			if v.PrimaryPart and v:FindFirstChild("Humanoid") and v.Humanoid.Health and abletocalculate() then
-				if sortmethods[sortmethod](v.PrimaryPart, v.Humanoid.Health) and raycasted(v.PrimaryPart) then
-				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), v.PrimaryPart)
-				entity.Player = {Character = v, Name = "DiamondGuardian", DisplayName = "DiamondGuardian", UserId = 1}
-				entity.Human = false
-				entity.RootPart = v.PrimaryPart
-				entity.Humanoid = v.Humanoid
-				end
-			end
-		end
-		for i,v in pairs(collectionService:GetTagged("GolemBoss")) do
-			if v.PrimaryPart and v:FindFirstChild("Humanoid") and v.Humanoid.Health and abletocalculate() then
-				if sortmethods[sortmethod](v.PrimaryPart, v.Humanoid.Health) and raycasted(v.PrimaryPart) then
-				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), v.PrimaryPart)
-				entity.Player = {Character = v, Name = "Titan", DisplayName = "Titan", UserId = 1}
-				entity.Human = false
-				entity.RootPart = v.PrimaryPart
-				entity.Humanoid = v.Humanoid
-				end
-			end
-		end
-		for i,v in pairs(collectionService:GetTagged("Drone")) do
-			local plr = playersService:GetPlayerByUserId(v:GetAttribute("PlayerUserId"))
-			if plr and plr ~= lplr and plr.Team and lplr.Team and plr.Team ~= lplr.Team and ({VoidwareFunctions:GetPlayerType(plr)})[2] and abletocalculate() and v.PrimaryPart and v:FindFirstChild("Humanoid") and v.Humanoid.Health then
-				if sortmethods[sortmethod](v.PrimaryPart, v.Humanoid.Health) and raycasted(v.PrimaryPart) then
-					sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), v.PrimaryPart)
-					entity.Player = {Character = v, Name = "Drone", DisplayName = "Drone", UserId = 1}
-					entity.Human = false
-					entity.RootPart = v.PrimaryPart
-					entity.Humanoid = v.Humanoid
-				end
-			end
-		end
-		for i,v in pairs(collectionService:GetTagged("Monster")) do
-			if v:GetAttribute("Team") ~= lplr:GetAttribute("Team") and abletocalculate() and v.PrimaryPart and v:FindFirstChild("Humanoid") and v.Humanoid.Health then
-				if sortmethods[sortmethod](v.PrimaryPart, v.Humanoid.Health) and raycasted(v.PrimaryPart) then
-				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), v.PrimaryPart)
-				entity.Player = {Character = v, Name = "Monster", DisplayName = "Monster", UserId = 1}
-				entity.Human = false
-				entity.RootPart = v.PrimaryPart
-				entity.Humanoid = v.Humanoid
-			end
-		end
-	end
-    end
-    return entity
-end
 
 local vapeAssert = function(argument, title, text, duration, hault, moduledisable, module) 
 	if not argument then
     local suc, res = pcall(function()
-    local notification = GuiLibrary:CreateNotification(title or "Voidware", text or "Failed to call function.", duration or 20, "assets/WarningNotification.png")
+    local notification = GuiLibrary:CreateNotification(title or "QP Vape", text or "Failed to call function.", duration or 20, "assets/WarningNotification.png")
     notification.IconLabel.ImageColor3 = Color3.new(220, 0, 0)
     notification.Frame.Frame.ImageColor3 = Color3.new(220, 0, 0)
     if moduledisable and (module and vape.Modules[module].Enabled) then vape.Modules[module]:Toggle(false) end
@@ -1390,8 +1311,8 @@ run(function()
 			pcall(function() HealthbarColor.Object.Visible = calling end)
 			pcall(function() HealthbarGradientToggle.Object.Visible = calling end)
 			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals:Toggle()
+				HealthbarVisuals:Toggle()
 			end
 		end 
 	})
@@ -1399,8 +1320,8 @@ run(function()
 		Name = 'Gradient',
 		Function = function(calling)
 			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals:Toggle()
+				HealthbarVisuals:Toggle()
 			end
 		end
 	})
@@ -1423,8 +1344,8 @@ run(function()
 		Function = function(calling)
 			pcall(function() HealthbarBackground.Object.Visible = calling end)
 			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals:Toggle()
+				HealthbarVisuals:Toggle()
 			end
 		end 
 	})
@@ -1439,8 +1360,8 @@ run(function()
 		Function = function(calling)
 			pcall(function() HealthbarText.Object.Visible = calling end)
 			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals:Toggle()
+				HealthbarVisuals:Toggle()
 			end
 		end 
 	})
@@ -1449,14 +1370,14 @@ run(function()
 		TempText = 'Healthbar Text',
 		AddFunction = function()
 			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals:Toggle()
+				HealthbarVisuals:Toggle()
 			end
 		end,
 		RemoveFunction = function()
 			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals:Toggle()
+				HealthbarVisuals:Toggle()
 			end
 		end
 	})
@@ -1465,8 +1386,8 @@ run(function()
 		Function = function(calling)
 			pcall(function() HealthbarTextColor.Object.Visible = calling end)
 			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals:Toggle()
+				HealthbarVisuals:Toggle()
 			end
 		end 
 	})
@@ -1481,8 +1402,8 @@ run(function()
 		Function = function(calling)
 			pcall(function() HealthbarFont.Object.Visible = calling end)
 			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals:Toggle()
+				HealthbarVisuals:Toggle()
 			end
 		end 
 	})
@@ -1491,8 +1412,8 @@ run(function()
 		List = GetEnumItems('Font'),
 		Function = function(calling)
 			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals:Toggle()
+				HealthbarVisuals:Toggle()
 			end
 		end
 	})
@@ -1501,8 +1422,8 @@ run(function()
 		Function = function(calling)
 			pcall(function() HealthbarRoundSize.Object.Visible = calling end);
 			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals:Toggle()
+				HealthbarVisuals:Toggle()
 			end
 		end
 	})
@@ -1525,8 +1446,8 @@ run(function()
 		Function = function(calling)
 			pcall(function() HealthbarHighlightColor.Object.Visible = calling end);
 			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals:Toggle()
+				HealthbarVisuals:Toggle()
 			end
 		end
 	})
@@ -2204,3 +2125,307 @@ run(function()
 	table.insert(skythemeobjects, SkySun)
 	table.insert(skythemeobjects, SkyMoon)
 end)
+
+run(function() -- pasted from old render once again
+	local HotbarVisuals: vapemodule = {};
+	local HotbarRounding: vapeminimodule = {};
+	local HotbarHighlight: vapeminimodule = {};
+	local HotbarColorToggle: vapeminimodule = {};
+	local HotbarHideSlotIcons: vapeminimodule = {};
+	local HotbarSlotNumberColorToggle: vapemodule = {};
+	local HotbarSpacing: vapeslider = {Value = 0};
+	local HotbarInvisibility: vapeslider = {Value = 4};
+	local HotbarRoundRadius: vapeslider = {Value = 3};
+	local HotbarAnimations: vapeminimodule = {};
+	local HotbarColor: vapeminimodule = {};
+	local HotbarHighlightColor: vapeminimodule = {};
+	local HotbarSlotNumberColor: vapeminimodule = {};
+	local hotbarcoloricons: securetable = Performance.new();
+	local hotbarsloticons: securetable = Performance.new();
+	local hotbarobjects: securetable = Performance.new();
+	local HotbarVisualsGradient: vapeminimodule = {};
+	local hotbarslotgradients: securetable = Performance.new();
+	local HotbarMinimumRotation: vapeslider = {Value = 0};
+	local HotbarMaximumRotation: vapeslider = {Value = 60};
+	local HotbarAnimationSpeed: vapeslider = {Value = 8};
+	local HotbarVisualsHighlightSize: vapeslider = {Value = 0};
+	local HotbarVisualsGradientColor: vapecolorslider = {};
+	local HotbarVisualsGradientColor2: vapecolorslider = {};
+	local HotbarAnimationThreads: securetable = Performance.new();
+	local inventoryiconobj;
+	local hotbarFunction = function()
+		local inventoryicons = ({pcall(function() return lplr.PlayerGui.hotbar['1'].ItemsHotbar end)})[2]
+		if inventoryicons and type(inventoryicons) == 'userdata' then
+			inventoryiconobj = inventoryicons;
+			pcall(function() inventoryicons:FindFirstChildOfClass('UIListLayout').Padding = UDim.new(0, HotbarSpacing.Value) end);
+			for i,v in inventoryicons:GetChildren() do 
+				local sloticon = ({pcall(function() return v:FindFirstChildWhichIsA('ImageButton'):FindFirstChildWhichIsA('TextLabel') end)})[2]
+				if type(sloticon) ~= 'userdata' then 
+					continue
+				end
+				table.insert(hotbarcoloricons, sloticon.Parent);
+				sloticon.Parent.Transparency = (0.1 * HotbarInvisibility.Value);
+				if HotbarColorToggle.Enabled and not HotbarVisualsGradient.Enabled then 
+					sloticon.Parent.BackgroundColor3 = Color3.fromHSV(HotbarColor.Hue, HotbarColor.Sat, HotbarColor.Value)
+				end
+				local gradient;
+				if HotbarVisualsGradient.Enabled then 
+					sloticon.Parent.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+					if sloticon.Parent:FindFirstChildWhichIsA('UIGradient') == nil then 
+						gradient = Instance.new('UIGradient') 
+						local color = Color3.fromHSV(HotbarVisualsGradientColor.Hue, HotbarVisualsGradientColor.Sat, HotbarVisualsGradientColor.Value)
+						local color2 = Color3.fromHSV(HotbarVisualsGradientColor2.Hue, HotbarVisualsGradientColor2.Sat, HotbarVisualsGradientColor2.Value)
+						gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, color), ColorSequenceKeypoint.new(1, color2)})
+						gradient.Parent = sloticon.Parent
+						table.insert(hotbarslotgradients, gradient)
+						table.insert(hotbarcoloricons, sloticon.Parent) 
+					end;
+					if gradient then 
+						HotbarAnimationThreads[gradient] = task.spawn(function()
+							repeat
+								task.wait();
+								if not HotbarAnimations.Enabled then 
+									continue;
+								end;
+								local integers: table = {
+									[1] = HotbarMinimumRotation.Value + math.random(1, 15),
+									[2] = HotbarMaximumRotation.Value - math.random(1, 14)
+								};
+								for i: number, v: number in integers do 
+									local rotationtween: Tween = tween:Create(gradient, TweenInfo.new(0.1 * HotbarAnimationSpeed.Value), {Rotation = v});
+									rotationtween:Play();
+									rotationtween.Completed:Wait();
+									task.wait(0.3);
+								end;
+							until (not HotbarVisuals.Enabled)
+						end);
+					end;
+				end
+				if HotbarRounding.Enabled then 
+					local uicorner = Instance.new('UICorner')
+					uicorner.Parent = sloticon.Parent
+					uicorner.CornerRadius = UDim.new(0, HotbarRoundRadius.Value)
+					table.insert(hotbarobjects, uicorner)
+				end
+				if HotbarHighlight.Enabled then
+					local highlight = Instance.new('UIStroke')
+					highlight.Color = Color3.fromHSV(HotbarHighlightColor.Hue, HotbarHighlightColor.Sat, HotbarHighlightColor.Value)
+					highlight.Thickness = 1.3 + (0.1 * HotbarVisualsHighlightSize.Value);
+					highlight.Parent = sloticon.Parent
+					table.insert(hotbarobjects, highlight)
+				end
+				if HotbarHideSlotIcons.Enabled then 
+					sloticon.Visible = false 
+				end
+				table.insert(hotbarsloticons, sloticon)
+			end 
+		end
+	end
+	HotbarVisuals = vape.Categories.Modules:CreateModule({
+		Name = 'HotbarVisuals',
+		Function = function(calling)
+			if calling then 
+				task.spawn(function()
+					table.insert(HotbarVisuals.Connections, lplr.PlayerGui.DescendantAdded:Connect(function(v)
+						if v.Name == 'hotbar' then
+							hotbarFunction()
+						end
+					end))
+					hotbarFunction()
+				end)
+				table.insert(HotbarVisuals.Connections, runservice.RenderStepped:Connect(function()
+					for i,v in hotbarcoloricons do 
+						pcall(function() v.Transparency = (0.1 * HotbarInvisibility.Value) end); 
+					end	
+				end))
+			else
+				HotbarAnimationThreads:clear(task.cancel);
+				for i,v in hotbarsloticons do 
+					pcall(function() v.Visible = true end)
+				end
+				for i,v in hotbarcoloricons do 
+					pcall(function() v.BackgroundColor3 = Color3.fromRGB(29, 36, 46) end)
+				end
+				for i,v in hotbarobjects do
+					pcall(function() v:Destroy() end)
+				end
+				for i,v in hotbarslotgradients do 
+					pcall(function() v:Destroy() end)
+				end
+				table.clear(hotbarobjects)
+				table.clear(hotbarsloticons)
+				table.clear(hotbarcoloricons)
+			end
+		end
+	})
+	HotbarColorToggle = HotbarVisuals:CreateToggle({
+		Name = 'Slot Color',
+		Function = function(calling)
+			pcall(function() HotbarColor.Object.Visible = calling end)
+			pcall(function() HotbarColorToggle.Object.Visible = calling end)
+			if HotbarVisuals.Enabled then 
+				HotbarVisuals:Toggle()
+				HotbarVisuals:Toggle()
+			end
+		end
+	})
+	HotbarVisualsGradient = HotbarVisuals:CreateToggle({
+		Name = 'Gradient Slot Color',
+		Function = function(calling)
+			pcall(function() HotbarVisualsGradientColor.Object.Visible = calling end)
+			pcall(function() HotbarVisualsGradientColor2.Object.Visible = calling end)
+			HotbarMinimumRotation.Object.Visible = calling and HotbarAnimations.Enabled;
+			HotbarMaximumRotation.Object.Visible = calling and HotbarAnimations.Enabled;
+			HotbarAnimationSpeed.Object.Visible = calling and HotbarAnimations.Enabled;
+			if HotbarVisuals.Enabled then 
+				HotbarVisuals:Toggle()
+				HotbarVisuals:Toggle()
+			end
+		end
+	})
+	HotbarVisualsGradientColor = HotbarVisuals:CreateColorSlider({
+		Name = 'Gradient Color',
+		Function = function(h, s, v)
+			for i,v in hotbarslotgradients do 
+				pcall(function() v.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromHSV(HotbarVisualsGradientColor.Hue, HotbarVisualsGradientColor.Sat, HotbarVisualsGradientColor.Value)), ColorSequenceKeypoint.new(1, Color3.fromHSV(HotbarVisualsGradientColor2.Hue, HotbarVisualsGradientColor2.Sat, HotbarVisualsGradientColor2.Value))}) end)
+			end
+		end
+	});
+	HotbarAnimations = HotbarVisuals:CreateToggle({
+		Name = 'Animations',
+		HoverText = 'Animates hotbar gradient rotation.',
+		Function = function(calling: boolean)
+			HotbarMinimumRotation.Object.Visible = calling;
+			HotbarMaximumRotation.Object.Visible = calling;
+			HotbarAnimationSpeed.Object.Visible = calling;
+		end
+	});
+	HotbarVisualsGradientColor2 = HotbarVisuals:CreateColorSlider({
+		Name = 'Gradient Color 2',
+		Function = function(h, s, v)
+			for i,v in hotbarslotgradients do 
+				pcall(function() v.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromHSV(HotbarVisualsGradientColor.Hue, HotbarVisualsGradientColor.Sat, HotbarVisualsGradientColor.Value)), ColorSequenceKeypoint.new(1, Color3.fromHSV(HotbarVisualsGradientColor2.Hue, HotbarVisualsGradientColor2.Sat, HotbarVisualsGradientColor2.Value))}) end)
+			end
+		end
+	});
+	HotbarMinimumRotation = HotbarVisuals:CreateSlider({
+		Name = 'Minimum',
+		Min = 0,
+		Max = 75,
+		Function = function(...) end
+	});
+	HotbarMaximumRotation = HotbarVisuals:CreateSlider({
+		Name = 'Maximum',
+		Min = 10,
+		Max = 100,
+		Function = function(...) end
+	});
+	HotbarAnimationSpeed = HotbarVisuals:CreateSlider({
+		Name = 'Speed',
+		Min = 0,
+		Max = 15,
+		Default = 8,
+		Function = function(...) end
+	});
+	HotbarColor = HotbarVisuals:CreateColorSlider({
+		Name = 'Slot Color',
+		Function = function(h, s, v)
+			for i,v in hotbarcoloricons do
+				if HotbarColorToggle.Enabled then
+					pcall(function() v.BackgroundColor3 = Color3.fromHSV(HotbarColor.Hue, HotbarColor.Sat, HotbarColor.Value) end) -- for some reason the 'h, s, v' didn't work :(
+				end
+			end
+		end
+	})
+	HotbarRounding = HotbarVisuals:CreateToggle({
+		Name = 'Rounding',
+		Function = function(calling)
+			pcall(function() HotbarRoundRadius.Object.Visible = calling end)
+			if HotbarVisuals.Enabled then 
+				HotbarVisuals:Toggle()
+				HotbarVisuals:Toggle()
+			end
+		end
+	})
+	HotbarRoundRadius = HotbarVisuals:CreateSlider({
+		Name = 'Corner Radius',
+		Min = 1,
+		Max = 20,
+		Function = function(calling)
+			for i,v in hotbarobjects do 
+				pcall(function() v.CornerRadius = UDim.new(0, calling) end)
+			end
+		end
+	});
+	HotbarHighlight = HotbarVisuals:CreateToggle({
+		Name = 'Outline Highlight',
+		Function = function(calling)
+			pcall(function() HotbarHighlightColor.Object.Visible = calling end)
+			pcall(function() HotbarVisualsHighlightSize.Object.Visible = calling end);
+			if HotbarVisuals.Enabled then 
+				HotbarVisuals:Toggle()
+				HotbarVisuals:Toggle()
+			end
+		end
+	})
+	HotbarHighlightColor = HotbarVisuals:CreateColorSlider({
+		Name = 'Highlight Color',
+		Function = function(h, s, v)
+			for i,v in hotbarobjects do 
+				if v:IsA('UIStroke') and HotbarHighlight.Enabled then 
+					pcall(function() v.Color = Color3.fromHSV(HotbarHighlightColor.Hue, HotbarHighlightColor.Sat, HotbarHighlightColor.Value) end)
+				end
+			end
+		end
+	});
+	HotbarVisualsHighlightSize = HotbarVisuals:CreateSlider({
+		Name = 'Highlight Size',
+		Min = 0,
+		Max = 8,
+		Function = function(value: number)
+			for i: number, v: UIStroke? in hotbarobjects do 
+				if v.ClassName == 'UIStroke' and HotbarHighlight.Enabled then 
+					pcall(function() v.Thickness = 1.3 + (0.1 * value) end)
+				end
+			end
+		end
+	});
+	HotbarHideSlotIcons = HotbarVisuals:CreateToggle({
+		Name = 'No Slot Numbers',
+		Function = function()
+			if HotbarVisuals.Enabled then 
+				HotbarVisuals:Toggle()
+				HotbarVisuals:Toggle()
+			end
+		end
+	})
+	HotbarInvisibility = HotbarVisuals:CreateSlider({
+		Name = 'Invisibility',
+		Min = 0,
+		Max = 10,
+		Default = 4,
+		Function = function(value)
+			for i,v in hotbarcoloricons do 
+				pcall(function() v.Transparency = (0.1 * value) end); 
+			end
+		end
+	})
+	HotbarSpacing = HotbarVisuals:CreateSlider({
+		Name = 'Spacing',
+		Min = 0,
+		Max = 5,
+		Function = function(value)
+			if HotbarVisuals.Enabled then 
+				pcall(function() inventoryiconobj:FindFirstChildOfClass('UIListLayout').Padding = UDim.new(0, value) end)
+			end
+		end
+	});
+
+	HotbarAnimationThreads.oncleanevent:Connect(task.cancel);
+	HotbarColor.Object.Visible = false;
+	HotbarRoundRadius.Object.Visible = false;
+	HotbarHighlightColor.Object.Visible = false;
+	HotbarMinimumRotation.Object.Visible = false;
+	HotbarMaximumRotation.Object.Visible = false;
+	HotbarAnimationSpeed.Object.Visible = false;
+end);
