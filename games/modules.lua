@@ -82,6 +82,50 @@ local activeAnimationTrack = nil
 local activeModel = nil
 local emoteActive = false
  
+
+local RunLoops = {RenderStepTable = {}, StepTable = {}, HeartTable = {}}
+do
+	function RunLoops:BindToRenderStep(name, func)
+		if RunLoops.RenderStepTable[name] == nil then
+			RunLoops.RenderStepTable[name] = runService.RenderStepped:Connect(func)
+		end
+	end
+
+	function RunLoops:UnbindFromRenderStep(name)
+		if RunLoops.RenderStepTable[name] then
+			RunLoops.RenderStepTable[name]:Disconnect()
+			RunLoops.RenderStepTable[name] = nil
+		end
+	end
+
+	function RunLoops:BindToStepped(name, func)
+		if RunLoops.StepTable[name] == nil then
+			RunLoops.StepTable[name] = runService.Stepped:Connect(func)
+		end
+	end
+
+	function RunLoops:UnbindFromStepped(name)
+		if RunLoops.StepTable[name] then
+			RunLoops.StepTable[name]:Disconnect()
+			RunLoops.StepTable[name] = nil
+		end
+	end
+
+	function RunLoops:BindToHeartbeat(name, func)
+		if RunLoops.HeartTable[name] == nil then
+			RunLoops.HeartTable[name] = runService.Heartbeat:Connect(func)
+		end
+	end
+
+	function RunLoops:UnbindFromHeartbeat(name)
+		if RunLoops.HeartTable[name] then
+			RunLoops.HeartTable[name]:Disconnect()
+			RunLoops.HeartTable[name] = nil
+		end
+	end
+end
+
+
 local XStore = {
 	bedtable = {},
 	Tweening = false
@@ -127,8 +171,8 @@ local function createSequence(args)
     local seq =
         ColorSequence.new(
         {
-            ColorSequenceKeypoint.new(0, args.c1),
-            ColorSequenceKeypoint.new(1, args.c2)
+            ColorSequenceKeypoint.new(args[1], args[2]),
+            ColorSequenceKeypoint.new(args[3], args[4])
         }
     )
     return seq
@@ -1068,7 +1112,7 @@ run(function()
 	local DamageIndicatorColorToggle = {}
 	local DamageIndicatorColor = {Hue = 0, Sat = 0, Value = 0}
 	local DamageIndicatorTextToggle = {}
-	local DamageIndicatorText = {ObjectList = {}}
+	local DamageIndicatorText = {ListEnabled = {}}
 	local DamageIndicatorFontToggle = {}
 	local DamageIndicatorFont = {Value = 'GothamBlack'}
 	local DamageIndicatorTextObjects = {}
@@ -1218,139 +1262,945 @@ run(function()
 end)
 
 run(function()
-    local RH
-    RH = vape.Categories.Modules:CreateModule({
-        Name = "Rainbow Health",
-        PerformanceModeBlacklisted = true,
-        Function = function(bool)
-            if bool then
-                RH:Clean(runService.RenderStepped:Connect(function()
-                    if lplr.PlayerGui:FindFirstChild('hotbar') and lplr.PlayerGui.hotbar:FindFirstChild('1') and lplr.PlayerGui.hotbar['1']:FindFirstChild('HotbarHealthbarContainer') then
-                        for _,v in next, lplr.PlayerGui.hotbar['1'].HotbarHealthbarContainer.HealthbarProgressWrapper:GetChildren()do
-                            if not v:IsA('UIListLayout') then
-                                v.BackgroundColor3 = Color3.fromHSV(tick()%5/5,1,1)
-                            end
-                        end
-                    end
-                end))
-            end
-        end
-    })
+	local HealthbarVisuals = {};
+	local HealthbarRound = {};
+	local HealthbarColorToggle = {};
+	local HealthbarGradientToggle = {};
+	local HealthbarGradientColor = {};
+	local HealthbarHighlight = {};
+	local HealthbarHighlightColor = newcolor();
+	local HealthbarGradientRotation = {Value = 0};
+	local HealthbarTextToggle = {};
+	local HealthbarFontToggle = {};
+	local HealthbarTextColorToggle = {};
+	local HealthbarBackgroundToggle = {};
+	local HealthbarText = {ListEnabled = {}};
+	local HealthbarInvis = {Value = 0};
+	local HealthbarRoundSize = {Value = 4};
+	local HealthbarFont = {value = 'LuckiestGuy'};
+	local HealthbarColor = newcolor();
+	local HealthbarBackground = newcolor();
+	local HealthbarTextColor = newcolor();
+	local healthbarobjects = Performance.new();
+	local oldhealthbar;
+	local healthbarhighlight;
+	local textconnection;
+	local function healthbarFunction()
+		if not HealthbarVisuals.Enabled then 
+			return 
+		end
+		local healthbar = ({pcall(function() return lplr.PlayerGui.hotbar['1'].HotbarHealthbarContainer.HealthbarProgressWrapper['1'] end)})[2]
+		if healthbar and type(healthbar) == 'userdata' then 
+			oldhealthbar = healthbar;
+			healthbar.Transparency = (0.1 * HealthbarInvis.Value);
+			healthbar.BackgroundColor3 = (HealthbarColorToggle.Enabled and Color3.fromHSV(HealthbarColor.Hue, HealthbarColor.Sat, HealthbarColor.Value) or healthbar.BackgroundColor3)
+			if HealthbarGradientToggle.Enabled then 
+				healthbar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				local gradient = (healthbar:FindFirstChildWhichIsA('UIGradient') or Instance.new('UIGradient', healthbar))
+				gradient.Color = createSequence({0, Color3.fromHSV(HealthbarColor.Hue, HealthbarColor.Sat, HealthbarColor.Value), 1, Color3.fromHSV(HealthbarGradientColor.Hue, HealthbarGradientColor.Sat, HealthbarGradientColor.Value)})
+				gradient.Rotation = HealthbarGradientRotation.Value
+				table.insert(healthbarobjects, gradient)
+			end
+			for i,v in healthbar.Parent:GetChildren() do 
+				if v:IsA('Frame') and v:FindFirstChildWhichIsA('UICorner') == nil and HealthbarRound.Enabled then
+					local corner = Instance.new('UICorner', v);
+					corner.CornerRadius = UDim.new(0, HealthbarRoundSize.Value);
+					table.insert(healthbarobjects, corner)
+				end
+			end
+			local healthbarbackground = ({pcall(function() return healthbar.Parent.Parent end)})[2]
+			if healthbarbackground and type(healthbarbackground) == 'userdata' then
+				healthbar.Transparency = (0.1 * HealthbarInvis.Value);
+				if HealthbarHighlight.Enabled then 
+					local highlight = Instance.new('UIStroke', healthbarbackground);
+					highlight.Color = Color3.fromHSV(HealthbarHighlightColor.Hue, HealthbarHighlightColor.Sat, HealthbarHighlightColor.Value);
+					highlight.Thickness = 1.6; 
+					healthbarhighlight = highlight
+				end
+				if healthbar.Parent.Parent:FindFirstChildWhichIsA('UICorner') == nil and HealthbarRound.Enabled then 
+					local corner = Instance.new('UICorner', healthbar.Parent.Parent);
+					corner.CornerRadius = UDim.new(0, HealthbarRoundSize.Value);
+					table.insert(healthbarobjects, corner)
+				end 
+				if HealthbarBackgroundToggle.Enabled then
+					healthbarbackground.BackgroundColor3 = Color3.fromHSV(HealthbarBackground.Hue, HealthbarBackground.Sat, HealthbarBackground.Value)
+				end
+			end
+			local healthbartext = ({pcall(function() return healthbar.Parent.Parent['1'] end)})[2]
+			if healthbartext and type(healthbartext) == 'userdata' then 
+				local randomtext = getrandomvalue(HealthbarText.ListEnabled)
+				if HealthbarTextColorToggle.Enabled then
+					healthbartext.TextColor3 = Color3.fromHSV(HealthbarTextColor.Hue, HealthbarTextColor.Sat, HealthbarTextColor.Value)
+				end
+				if HealthbarFontToggle.Enabled then 
+					healthbartext.Font = Enum.Font[HealthbarFont.Value]
+				end
+				if randomtext ~= '' and HealthbarTextToggle.Enabled then 
+					healthbartext.Text = randomtext:gsub('<health>', isAlive(lplr, true) and tostring(math.round(lplr.Character:GetAttribute('Health') or 0)) or '0')
+				else
+					pcall(function() healthbartext.Text = tostring(lplr.Character:GetAttribute('Health')) end)
+				end
+				if not textconnection then 
+					textconnection = healthbartext:GetPropertyChangedSignal('Text'):Connect(function()
+						local randomtext = getrandomvalue(HealthbarText.ListEnabled)
+						if randomtext ~= '' then 
+							healthbartext.Text = randomtext:gsub('<health>', isAlive() and tostring(math.floor(lplr.Character:GetAttribute('Health') or 0)) or '0')
+						else
+							pcall(function() healthbartext.Text = tostring(math.floor(lplr.Character:GetAttribute('Health'))) end)
+						end
+					end)
+				end
+			end
+		end
+	end
+	HealthbarVisuals = vape.Categories.Modules:CreateModule({
+		Name = 'HealthbarVisuals',
+		Function = function(calling)
+			if calling then 
+				task.spawn(function()
+					table.insert(HealthbarVisuals.Connections, lplr.PlayerGui.DescendantAdded:Connect(function(v)
+						if v.Name == 'HotbarHealthbarContainer' and v.Parent and v.Parent.Parent and v.Parent.Parent.Name == 'hotbar' then
+							healthbarFunction()
+						end
+					end))
+					healthbarFunction()
+				end)
+			else
+				pcall(function() textconnection:Disconnect() end)
+				pcall(function() oldhealthbar.Parent.Parent.BackgroundColor3 = Color3.fromRGB(41, 51, 65) end)
+				pcall(function() oldhealthbar.BackgroundColor3 = Color3.fromRGB(203, 54, 36) end)
+				pcall(function() oldhealthbar.Parent.Parent['1'].Text = tostring(lplr.Character:GetAttribute('Health')) end)
+				pcall(function() oldhealthbar.Parent.Parent['1'].TextColor3 = Color3.fromRGB(255, 255, 255) end)
+				pcall(function() oldhealthbar.Parent.Parent['1'].Font = Enum.Font.LuckiestGuy end)
+				oldhealthbar = nil
+				textconnection = nil
+				for i,v in healthbarobjects do 
+					pcall(function() v:Destroy() end)
+				end
+				table.clear(healthbarobjects);
+				pcall(function() healthbarhighlight:Destroy() end);
+				healthbarhighlight = nil;
+			end
+		end
+	})
+	HealthbarColorToggle = HealthbarVisuals:CreateToggle({
+		Name = 'Main Color',
+		Default = true,
+		Function = function(calling)
+			pcall(function() HealthbarColor.Object.Visible = calling end)
+			pcall(function() HealthbarGradientToggle.Object.Visible = calling end)
+			if HealthbarVisuals.Enabled then
+				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals.ToggleButton(false)
+			end
+		end 
+	})
+	HealthbarGradientToggle = HealthbarVisuals:CreateToggle({
+		Name = 'Gradient',
+		Function = function(calling)
+			if HealthbarVisuals.Enabled then
+				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals.ToggleButton(false)
+			end
+		end
+	})
+	HealthbarColor = HealthbarVisuals:CreateColorSlider({
+		Name = 'Main Color',
+		Function = function()
+			task.spawn(healthbarFunction)
+		end
+	})
+	HealthbarGradientColor = HealthbarVisuals:CreateColorSlider({
+		Name = 'Secondary Color',
+		Function = function(calling)
+			if HealthbarGradientToggle.Enabled then 
+				task.spawn(healthbarFunction)
+			end
+		end
+	})
+	HealthbarBackgroundToggle = HealthbarVisuals:CreateToggle({
+		Name = 'Background Color',
+		Function = function(calling)
+			pcall(function() HealthbarBackground.Object.Visible = calling end)
+			if HealthbarVisuals.Enabled then
+				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals.ToggleButton(false)
+			end
+		end 
+	})
+	HealthbarBackground = HealthbarVisuals:CreateColorSlider({
+		Name = 'Background Color',
+		Function = function() 
+			task.spawn(healthbarFunction)
+		end
+	})
+	HealthbarTextToggle = HealthbarVisuals:CreateToggle({
+		Name = 'Text',
+		Function = function(calling)
+			pcall(function() HealthbarText.Object.Visible = calling end)
+			if HealthbarVisuals.Enabled then
+				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals.ToggleButton(false)
+			end
+		end 
+	})
+	HealthbarText = HealthbarVisuals:CreateTextList({
+		Name = 'Text',
+		TempText = 'Healthbar Text',
+		AddFunction = function()
+			if HealthbarVisuals.Enabled then
+				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals.ToggleButton(false)
+			end
+		end,
+		RemoveFunction = function()
+			if HealthbarVisuals.Enabled then
+				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals.ToggleButton(false)
+			end
+		end
+	})
+	HealthbarTextColorToggle = HealthbarVisuals:CreateToggle({
+		Name = 'Text Color',
+		Function = function(calling)
+			pcall(function() HealthbarTextColor.Object.Visible = calling end)
+			if HealthbarVisuals.Enabled then
+				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals.ToggleButton(false)
+			end
+		end 
+	})
+	HealthbarTextColor = HealthbarVisuals:CreateColorSlider({
+		Name = 'Text Color',
+		Function = function() 
+			task.spawn(healthbarFunction)
+		end
+	})
+	HealthbarFontToggle = HealthbarVisuals:CreateToggle({
+		Name = 'Text Font',
+		Function = function(calling)
+			pcall(function() HealthbarFont.Object.Visible = calling end)
+			if HealthbarVisuals.Enabled then
+				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals.ToggleButton(false)
+			end
+		end 
+	})
+	HealthbarFont = HealthbarVisuals:CreateDropdown({
+		Name = 'Text Font',
+		List = GetEnumItems('Font'),
+		Function = function(calling)
+			if HealthbarVisuals.Enabled then
+				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals.ToggleButton(false)
+			end
+		end
+	})
+	HealthbarRound = HealthbarVisuals:CreateToggle({
+		Name = 'Round',
+		Function = function(calling)
+			pcall(function() HealthbarRoundSize.Object.Visible = calling end);
+			if HealthbarVisuals.Enabled then
+				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals.ToggleButton(false)
+			end
+		end
+	})
+	HealthbarRoundSize = HealthbarVisuals:CreateSlider({
+		Name = 'Corner Size',
+		Min = 1,
+		Max = 20,
+		Default = 5,
+		Function = function(value)
+			if HealthbarVisuals.Enabled then 
+				pcall(function() 
+					oldhealthbar.Parent:FindFirstChildOfClass('UICorner').CornerRadius = UDim.new(0, value);
+					oldhealthbar.Parent.Parent:FindFirstChildOfClass('UICorner').CornerRadius = UDim.new(0, value)  
+				end)
+			end
+		end
+	})
+	HealthbarHighlight = HealthbarVisuals:CreateToggle({
+		Name = 'Highlight',
+		Function = function(calling)
+			pcall(function() HealthbarHighlightColor.Object.Visible = calling end);
+			if HealthbarVisuals.Enabled then
+				HealthbarVisuals.ToggleButton(false)
+				HealthbarVisuals.ToggleButton(false)
+			end
+		end
+	})
+	HealthbarHighlightColor = HealthbarVisuals:CreateColorSlider({
+		Name = 'Highlight Color',
+		Function = function()
+			if HealthbarVisuals.Enabled then 
+				pcall(function() healthbarhighlight.Color = Color3.fromHSV(HealthbarHighlightColor.Hue, HealthbarHighlightColor.Sat, HealthbarHighlightColor.Value) end)
+			end
+		end
+	})
+	HealthbarInvis = HealthbarVisuals:CreateSlider({
+		Name = 'Invisibility',
+		Min = 0,
+		Max = 10,
+		Function = function(value)
+			pcall(function() 
+				oldhealthbar.Transparency = (0.1 * value);
+				oldhealthbar.Parent.Parent.Transparency = (0.1 * HealthbarInvis.Value); 
+			end)
+		end
+	})
+	HealthbarBackground.Object.Visible = false;
+	HealthbarText.Object.Visible = false;
+	HealthbarTextColor.Object.Visible = false;
+	HealthbarFont.Object.Visible = false;
+	HealthbarRoundSize.Object.Visible = false;
+	HealthbarHighlightColor.Object.Visible = false;
+end)
 
-    local RA
-    RA = vape.Categories.Modules:CreateModule({
-        Name = "Rainbow Armor",
-        PerformanceModeBlacklisted = true,
-        Function = function(bool)
-            if bool then
-                RA:Clean(runService.RenderStepped:Connect(function()
-                    pcall(function()
-                        for _,v in next, game.Players.LocalPlayer.Character:GetChildren() do
-                            if string.find(string.lower(v.Name), 'boots') or string.find(string.lower(v.Name), 'chestplate') or string.find(string.lower(v.Name), 'helmet') then
-                                v.Handle.Material = "ForceField"
-                                v.Handle.TextureID = ""
-                                v.Handle.Color = Color3.fromHSV(tick()%5/5,1,1)
-                            end
-                        end
-                    end)
-                end))
-            end
-        end
-    })
+run(function()
+	local PlayerViewModel = {};
+    local viewmodelMode = {};
+	local viewmodel = Performance.new()
+	local reModel = function(entity)
+		for i,v in entity.Character:GetChildren() do
+			if v:IsA('BasePart') or v:IsA('Accessory') then
+				pcall(function() v.Transparency = 1 end)
+			end
+		end
+		local part = Instance.new("Part", entity.Character)
+		part.CanCollide = false
 
-    local RI
-    local RIW = false
-    RI = vape.Categories.Modules:CreateModule({
-        Name = "Rainbow Hotbar",
-        PerformanceModeBlacklisted = true,
-        Function = function(bool)
-            if bool then
-                RI:Clean(runService.RenderStepped:Connect(function()
-                    if RIW then return end
-                    RIW = true
-                    pcall(function()
-                        for i = 0.1, 0.4, 0.001 do
-                            local r = math.clamp(1 - i, 0, 1)
-                            local l = math.clamp(0.9 - i, 0, 1)
-            
-                            local hsvColor1, hsvColor2 = Color3.fromHSV(r, 0.5, 1), Color3.fromHSV(l, 0.5, 1)
-                            for _,v in next, game.Players.LocalPlayer.PlayerGui.hotbar:GetDescendants() do
-                                if v:IsA('Frame') then
-                                    if v:FindFirstChildOfClass('ImageButton') then
-                                        if not v:FindFirstChildOfClass('ImageButton'):FindFirstChild('UICorner') then
-                                            Instance.new('UICorner', v:FindFirstChildOfClass('ImageButton'))
-                                        end
-                                        if not v:FindFirstChildOfClass('ImageButton'):FindFirstChild('UIGradient') then
-                                            Instance.new('UIGradient', v:FindFirstChildOfClass('ImageButton'))
-                                        end
-                                        if v:FindFirstChildOfClass('ImageButton'):FindFirstChild("1") then
-                                            v:FindFirstChildOfClass('ImageButton')["1"]:Destroy()
-                                        end
-                                        if not v:FindFirstChildOfClass('ImageButton'):FindFirstChild('GradientStroke') then
-                                            local stroke = Instance.new('UIStroke',v:FindFirstChildOfClass('ImageButton'))
-                                            stroke.Thickness = 1
-                                            stroke.Color = Color3.fromRGB(255,255,255)
-                                            stroke.Transparency = 0.5
-                                            stroke.Name = "GradientStroke"
-                                            local grad = Instance.new('UIGradient', stroke)
-                                            grad.Rotation = 0
-                                        end
-                                        v:FindFirstChildOfClass('ImageButton').BackgroundColor3 = Color3.fromRGB(255,255,255)
-                                        v:FindFirstChildOfClass('ImageButton').ImageColor3 = Color3.fromRGB(255,255,255)
-                                        
-                                        if v:FindFirstChildOfClass('ImageButton'):FindFirstChildOfClass('UIGradient') ~= nil then
-                                            v:FindFirstChildOfClass('ImageButton'):FindFirstChildOfClass('UIGradient').Rotation = 0
-                                            v:FindFirstChildOfClass('ImageButton'):FindFirstChildOfClass('UIGradient').Color = createSequence({c1 = hsvColor1, c2 = hsvColor2})
-                                            v:FindFirstChildOfClass('ImageButton'):FindFirstChild('GradientStroke'):FindFirstChildOfClass('UIGradient').Color = createSequence({c1 = hsvColor1, c2 = hsvColor2})
-                                        end
-                                    end
-                                end
-                            end
-                            task.wait()
-                        end
-                        for i = 0.6, 0.9, 0.001 do
-                            local r = math.clamp(i, 0, 1)
-                            local l = math.clamp(i - 0.1, 0, 1)
-            
-                            local hsvColor1, hsvColor2 = Color3.fromHSV(r, 0.5, 1), Color3.fromHSV(l, 0.5, 1)
-                            for _,v in next, game.Players.LocalPlayer.PlayerGui.hotbar:GetDescendants() do
-                                if v:IsA('Frame') then
-                                    if v:FindFirstChildOfClass('ImageButton') then
-                                        if not v:FindFirstChildOfClass('ImageButton'):FindFirstChild('UICorner') then
-                                            Instance.new('UICorner', v:FindFirstChildOfClass('ImageButton'))
-                                        end
-                                        if not v:FindFirstChildOfClass('ImageButton'):FindFirstChild('UIGradient') then
-                                            Instance.new('UIGradient', v:FindFirstChildOfClass('ImageButton'))
-                                        end
-                                        if v:FindFirstChildOfClass('ImageButton'):FindFirstChild("1") then
-                                            v:FindFirstChildOfClass('ImageButton')["1"]:Destroy()
-                                        end
-                                        if not v:FindFirstChildOfClass('ImageButton'):FindFirstChild('GradientStroke') then
-                                            local stroke = Instance.new('UIStroke',v:FindFirstChildOfClass('ImageButton'))
-                                            stroke.Thickness = 1
-                                            stroke.Color = Color3.fromRGB(255,255,255)
-                                            stroke.Transparency = 0.5
-                                            stroke.Name = "GradientStroke"
-                                            local grad = Instance.new('UIGradient', stroke)
-                                            grad.Rotation = 0
-                                        end
-                                        v:FindFirstChildOfClass('ImageButton').BackgroundColor3 = Color3.fromRGB(255,255,255)
-                                        v:FindFirstChildOfClass('ImageButton').ImageColor3 = Color3.fromRGB(255,255,255)
-                                        
-                                        if v:FindFirstChildOfClass('ImageButton'):FindFirstChildOfClass('UIGradient') ~= nil then
-                                            v:FindFirstChildOfClass('ImageButton'):FindFirstChildOfClass('UIGradient').Rotation = 0
-                                            v:FindFirstChildOfClass('ImageButton'):FindFirstChildOfClass('UIGradient').Color = createSequence({c1 = hsvColor1, c2 = hsvColor2})
-                                            v:FindFirstChildOfClass('ImageButton'):FindFirstChild('GradientStroke'):FindFirstChildOfClass('UIGradient').Color = createSequence({c1 = hsvColor1, c2 = hsvColor2})
-                                        end
-                                    end
-                                end
-                            end
-                            task.wait()
-                        end
-                    end)
-                    RIW = false
-                end))
+		local mesh = Instance.new("SpecialMesh", part)
+		mesh.MeshId = viewmodelMode.Value == 'Among Us' and 'http://www.roblox.com/asset/?id=6235963214' or 'http://www.roblox.com/asset/?id=13004256866'
+		mesh.TextureId = viewmodelMode.Value == 'Among Us' and 'http://www.roblox.com/asset/?id=6235963270' or 'http://www.roblox.com/asset/?id=13004256905'
+		mesh.Offset = viewmodelMode.Value == 'Rabbit' and Vector3.new(0,1.6,0) or Vector3.new(0,0.3,0)
+		mesh.Scale = viewmodelMode.Value == 'Rabbit' and Vector3.new(10, 8, 10) or Vector3.new(0.11, 0.11, 0.11)
+
+		local weld = Instance.new("Weld", part)
+		weld.Part0 = part
+		weld.Part1 = part.Parent.UpperTorso or part.Parent.Torso
+		
+		table.insert(viewmodel, task.spawn(function()
+			viewmodel[entity.Name] = part
+		end))
+	end;
+	local removeModel = function(ent)
+        viewmodel[ent.Name]:Remove()
+        for i,v in ent.Character:GetChildren() do
+            if v:IsA('BasePart') or v:IsA('Accessory') then
+                pcall(function() 
+                    if v ~= ent.Character.PrimaryPart then 
+                        v.Transparency = 0 
+                    end 
+                end)
             end
         end
+        viewmodel[ent.Name] = nil
+		task.wait(1)
+	end
+	PlayerViewModel = vape.Categories.Modules:CreateModule({
+		Name = 'PlayerViewModel',
+		Function = function(call)
+			if call then
+				for i,v in playersService:GetPlayers() do
+					table.insert(PlayerViewModel.Connections, v.CharacterAdded:Connect(function()
+						pcall(function() removeModel(v) end)
+						task.spawn(pcall, reModel, v)
+					end))
+				end
+				table.insert(PlayerViewModel.Connections, playersService.PlayerAdded:Connect(function(v)
+					table.insert(PlayerViewModel.Connections, v.CharacterAdded:Connect(function()
+						task.spawn(pcall, removeModel, v)
+						task.spawn(pcall, reModel, v)
+					end))
+				end))
+				RunLoops:BindToHeartbeat('PlayerVM', function()
+					for i,v in playersService:GetPlayers() do
+						if isAlive(v) and not viewmodel[v.Name] then
+                            if not PlayerViewModel.Enabled then break end
+							task.spawn(pcall, reModel, v)
+						end
+					end
+				end)
+			else
+                RunLoops:UnbindFromHeartbeat('PlayerVM')
+                for i,v in playersService:GetPlayers() do
+                    task.spawn(pcall, removeModel, v)
+                end
+			end
+		end,
+		HoverText = 'Turns you into a curtain model'
+	})
+    viewmodelMode = PlayerViewModel:CreateDropdown({
+        Name = 'Model',
+        List = {'Among Us', 'Rabbit'},
+        Function = function()
+			PlayerViewModel:Toggle()
+        end,
+        Default = 'Among Us'
     })
+end);
+
+
+run(function()
+	local queuecardvisuals = {};
+	local queucardvisualsgradientoption = {};
+	local queuecardvisualhighlight = {};
+	local queuecardmodshighlightcolor = newcolor();
+	local queuecardvisualscolor = newcolor();
+	local queuecardvisualscolor2 = newcolor();
+	local queuecardobjects = Performance.new();
+	local queuecardvisualsround = {Value = 4};
+	local queuecardfunc: () -> () = function()
+		if not lplr.PlayerGui:FindFirstChild('QueueApp') then return end;
+		if not queuecardvisuals.Enabled then return end;
+		local card: Frame = lplr.PlayerGui.QueueApp:WaitForChild('1', math.huge);
+		local cardcorner: UICorner = card:FindFirstChildOfClass('UICorner') or Instance.new('UICorner', card);
+		card.BackgroundColor3 = Color3.fromHSV(queuecardvisualscolor.Hue, queuecardvisualscolor.Sat, queuecardvisualscolor.Value);
+		cardcorner.CornerRadius = queuecardvisualsround.Value;
+		if table.find(queuecardobjects, cardcorner) == nil then 
+			table.insert(queuecardobjects, cardcorner);
+		end;
+		if queucardvisualsgradientoption.Enabled then 
+			card.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+			local gradient = card:FindFirstChildWhichIsA('UIGradient') or Instance.new('UIGradient', card);
+			gradient.Color = ColorSequence.new({
+				[1] = ColorSequenceKeypoint.new(0, Color3.fromHSV(queuecardvisualscolor.Hue, queuecardvisualscolor.Sat, queuecardvisualscolor.Value)), 
+				[2] = ColorSequenceKeypoint.new(1, Color3.fromHSV(queuecardvisualscolor2.Hue, queuecardvisualscolor2.Sat, queuecardvisualscolor2.Value))
+			});
+			if table.find(queuecardobjects, gradient) == nil then
+				table.insert(queuecardobjects, gradient);
+			end;
+		end;
+		if queuecardvisualhighlight.Enabled then 
+			local highlight: UIStroke? = card:FindFirstChildOfClass('UIStroke') or Instance.new('UIStroke', card);
+			highlight.Thickness = 1.7;
+			highlight.Color = Color3.fromHSV(queuecardmodshighlightcolor.Hue, queuecardmodshighlightcolor.Sat, queuecardmodshighlightcolor.Value);
+			if table.find(queuecardobjects, highlight) == nil then
+				table.insert(queuecardobjects, highlight);
+			end;
+		else
+			pcall(function() card:FindFirstChildOfClass('UIStroke'):Destroy() end)
+		end;
+	end;
+	queuecardvisuals = vape.Categories.Modules:CreateModule({
+		Name = 'QueueCardVisuals',
+		Function = function(calling: boolean)
+			if calling then 
+				pcall(queuecardfunc);
+				table.insert(queuecardvisuals.Connections, lplr.PlayerGui.ChildAdded:Connect(queuecardfunc));
+			else
+				queuecardobjects:clear(game.Destroy)
+			end
+		end
+	});
+	queucardvisualsgradientoption = queuecardvisuals:CreateToggle({
+		Name = 'Gradient',
+		Function = function(calling)
+			pcall(function() queuecardvisualscolor2.Object.Visible = calling end) 
+		end
+	});
+	queuecardvisualsround = queuecardvisuals:CreateSlider({
+		Name = 'Rounding',
+		Min = 0,
+		Max = 20,
+		Default = 4,
+		Function = function(value: number): ()
+			for i: number, v: UICorner? in queuecardobjects do 
+				if v.ClassName == 'UICorner' then 
+					v.CornerRadius = value;
+				end;
+			end
+		end
+	})
+	queuecardvisualscolor = queuecardvisuals:CreateColorSlider({
+		Name = 'Color',
+		Function = function()
+			task.spawn(pcall, queuecardfunc)
+		end
+	});
+	queuecardvisualscolor2 = queuecardvisuals:CreateColorSlider({
+		Name = 'Color 2',
+		Function = function()
+			task.spawn(pcall, queuecardfunc)
+		end
+	});
+	queuecardvisualhighlight = queuecardvisuals:CreateToggle({
+		Name = 'Highlight',
+		Function = function()
+			task.spawn(pcall, queuecardfunc)
+		end
+	});
+	queuecardmodshighlightcolor = queuecardvisuals:CreateColorSlider({
+		Name = 'Highlight Color',
+		Function = function()
+			task.spawn(pcall, queuecardfunc)
+		end;
+	});
+end);
+
+
+run(function()
+	local Atmosphere = {}
+	local AtmosphereMethod = {Value = 'Custom'}
+	local skythemeobjects = {}
+	local SkyUp = {Value = ''}
+	local SkyDown = {Value = ''}
+	local SkyLeft = {Value = ''}
+	local SkyRight = {Value = ''}
+	local SkyFront = {Value = ''}
+	local SkyBack = {Value = ''}
+	local SkySun = {Value = ''}
+	local SkyMoon = {Value = ''}
+	local SkyColor = {Value = 1}
+	local skyobj
+	local skyatmosphereobj
+	local oldtime
+	local oldobjects = {}
+	local themetable = {
+		Custom = function() 
+			skyobj.SkyboxBk = tonumber(SkyBack.Value) and 'rbxassetid://'..SkyBack.Value or SkyBack.Value
+			skyobj.SkyboxDn = tonumber(SkyDown.Value) and 'rbxassetid://'..SkyDown.Value or SkyDown.Value
+			skyobj.SkyboxFt = tonumber(SkyFront.Value) and 'rbxassetid://'..SkyFront.Value or SkyFront.Value
+			skyobj.SkyboxLf = tonumber(SkyLeft.Value) and 'rbxassetid://'..SkyLeft.Value or SkyLeft.Value
+			skyobj.SkyboxRt = tonumber(SkyRight.Value) and 'rbxassetid://'..SkyRight.Value or SkyRight.Value
+			skyobj.SkyboxUp = tonumber(SkyUp.Value) and 'rbxassetid://'..SkyUp.Value or SkyUp.Value
+			skyobj.SunTextureId = tonumber(SkySun.Value) and 'rbxassetid://'..SkySun.Value or SkySun.Value
+			skyobj.MoonTextureId = tonumber(SkyMoon.Value) and 'rbxassetid://'..SkyMoon.Value or SkyMoon.Value
+		end,
+		Purple = function()
+            skyobj.SkyboxBk = 'rbxassetid://8539982183'
+            skyobj.SkyboxDn = 'rbxassetid://8539981943'
+            skyobj.SkyboxFt = 'rbxassetid://8539981721'
+            skyobj.SkyboxLf = 'rbxassetid://8539981424'
+            skyobj.SkyboxRt = 'rbxassetid://8539980766'
+            skyobj.SkyboxUp = 'rbxassetid://8539981085'
+			skyobj.MoonAngularSize = 0
+            skyobj.SunAngularSize = 0
+            skyobj.StarCount = 3e3
+		end,
+		Galaxy = function()
+            skyobj.SkyboxBk = 'rbxassetid://159454299'
+            skyobj.SkyboxDn = 'rbxassetid://159454296'
+            skyobj.SkyboxFt = 'rbxassetid://159454293'
+            skyobj.SkyboxLf = 'rbxassetid://159454293'
+            skyobj.SkyboxRt = 'rbxassetid://159454293'
+            skyobj.SkyboxUp = 'rbxassetid://159454288'
+			skyobj.SunAngularSize = 0
+		end,
+		BetterNight = function()
+			skyobj.SkyboxBk = 'rbxassetid://155629671'
+            skyobj.SkyboxDn = 'rbxassetid://12064152'
+            skyobj.SkyboxFt = 'rbxassetid://155629677'
+            skyobj.SkyboxLf = 'rbxassetid://155629662'
+            skyobj.SkyboxRt = 'rbxassetid://155629666'
+            skyobj.SkyboxUp = 'rbxassetid://155629686'
+			skyobj.SunAngularSize = 0
+		end,
+		BetterNight2 = function()
+			skyobj.SkyboxBk = 'rbxassetid://248431616'
+            skyobj.SkyboxDn = 'rbxassetid://248431677'
+            skyobj.SkyboxFt = 'rbxassetid://248431598'
+            skyobj.SkyboxLf = 'rbxassetid://248431686'
+            skyobj.SkyboxRt = 'rbxassetid://248431611'
+            skyobj.SkyboxUp = 'rbxassetid://248431605'
+			skyobj.StarCount = 3000
+		end,
+		MagentaOrange = function()
+			skyobj.SkyboxBk = 'rbxassetid://566616113'
+            skyobj.SkyboxDn = 'rbxassetid://566616232'
+            skyobj.SkyboxFt = 'rbxassetid://566616141'
+            skyobj.SkyboxLf = 'rbxassetid://566616044'
+            skyobj.SkyboxRt = 'rbxassetid://566616082'
+            skyobj.SkyboxUp = 'rbxassetid://566616187'
+			skyobj.StarCount = 3000
+		end,
+		Purple2 = function()
+			skyobj.SkyboxBk = 'rbxassetid://8107841671'
+			skyobj.SkyboxDn = 'rbxassetid://6444884785'
+			skyobj.SkyboxFt = 'rbxassetid://8107841671'
+			skyobj.SkyboxLf = 'rbxassetid://8107841671'
+			skyobj.SkyboxRt = 'rbxassetid://8107841671'
+			skyobj.SkyboxUp = 'rbxassetid://8107849791'
+			skyobj.SunTextureId = 'rbxassetid://6196665106'
+			skyobj.MoonTextureId = 'rbxassetid://6444320592'
+			skyobj.MoonAngularSize = 0
+		end,
+		Galaxy2 = function()
+			skyobj.SkyboxBk = 'rbxassetid://14164368678'
+			skyobj.SkyboxDn = 'rbxassetid://14164386126'
+			skyobj.SkyboxFt = 'rbxassetid://14164389230'
+			skyobj.SkyboxLf = 'rbxassetid://14164398493'
+			skyobj.SkyboxRt = 'rbxassetid://14164402782'
+			skyobj.SkyboxUp = 'rbxassetid://14164405298'
+			skyobj.SunTextureId = 'rbxassetid://8281961896'
+			skyobj.MoonTextureId = 'rbxassetid://6444320592'
+			skyobj.SunAngularSize = 0
+			skyobj.MoonAngularSize = 0
+		end,
+		Pink = function()
+			skyobj.SkyboxBk = 'rbxassetid://271042516'
+			skyobj.SkyboxDn = 'rbxassetid://271077243'
+			skyobj.SkyboxFt = 'rbxassetid://271042556'
+			skyobj.SkyboxLf = 'rbxassetid://271042310'
+			skyobj.SkyboxRt = 'rbxassetid://271042467'
+			skyobj.SkyboxUp = 'rbxassetid://271077958'
+		end,
+		Purple3 = function()
+			skyobj.SkyboxBk = 'rbxassetid://433274085'
+			skyobj.SkyboxDn = 'rbxassetid://433274194'
+			skyobj.SkyboxFt = 'rbxassetid://433274131'
+			skyobj.SkyboxLf = 'rbxassetid://433274370'
+			skyobj.SkyboxRt = 'rbxassetid://433274429'
+			skyobj.SkyboxUp = 'rbxassetid://433274285'
+		end,
+		DarkishPink = function()
+			skyobj.SkyboxBk = 'rbxassetid://570555736'
+			skyobj.SkyboxDn = 'rbxassetid://570555964'
+			skyobj.SkyboxFt = 'rbxassetid://570555800'
+			skyobj.SkyboxLf = 'rbxassetid://570555840'
+			skyobj.SkyboxRt = 'rbxassetid://570555882'
+			skyobj.SkyboxUp = 'rbxassetid://570555929'
+		end,
+		Space = function()
+			skyobj.MoonAngularSize = 0
+			skyobj.SunAngularSize = 0
+			skyobj.SkyboxBk = 'rbxassetid://166509999'
+			skyobj.SkyboxDn = 'rbxassetid://166510057'
+			skyobj.SkyboxFt = 'rbxassetid://166510116'
+			skyobj.SkyboxLf = 'rbxassetid://166510092'
+			skyobj.SkyboxRt = 'rbxassetid://166510131'
+			skyobj.SkyboxUp = 'rbxassetid://166510114'
+		end,
+		Galaxy3 = function()
+			skyobj.MoonAngularSize = 0
+			skyobj.SunAngularSize = 0
+			skyobj.SkyboxBk = 'rbxassetid://14543264135'
+			skyobj.SkyboxDn = 'rbxassetid://14543358958'
+			skyobj.SkyboxFt = 'rbxassetid://14543257810'
+			skyobj.SkyboxLf = 'rbxassetid://14543275895'
+			skyobj.SkyboxRt = 'rbxassetid://14543280890'
+			skyobj.SkyboxUp = 'rbxassetid://14543371676'
+		end,
+		NetherWorld = function()
+			skyobj.MoonAngularSize = 0
+			skyobj.SunAngularSize = 0
+			skyobj.SkyboxBk = 'rbxassetid://14365019002'
+			skyobj.SkyboxDn = 'rbxassetid://14365023350'
+			skyobj.SkyboxFt = 'rbxassetid://14365018399'
+			skyobj.SkyboxLf = 'rbxassetid://14365018705'
+			skyobj.SkyboxRt = 'rbxassetid://14365018143'
+			skyobj.SkyboxUp = 'rbxassetid://14365019327'
+		end,
+		Nebula = function()
+			skyobj.MoonAngularSize = 0
+			skyobj.SunAngularSize = 0
+			skyobj.SkyboxBk = 'rbxassetid://5260808177'
+			skyobj.SkyboxDn = 'rbxassetid://5260653793'
+			skyobj.SkyboxFt = 'rbxassetid://5260817288'
+			skyobj.SkyboxLf = 'rbxassetid://5260800833'
+			skyobj.SkyboxRt = 'rbxassetid://5260811073'
+			skyobj.SkyboxUp = 'rbxassetid://5260824661'
+		end,
+		PurpleSpace = function()
+			skyobj.MoonAngularSize = 0
+			skyobj.SunAngularSize = 0
+			skyobj.SkyboxBk = 'rbxassetid://15983968922'
+			skyobj.SkyboxDn = 'rbxassetid://15983966825'
+			skyobj.SkyboxFt = 'rbxassetid://15983965025'
+			skyobj.SkyboxLf = 'rbxassetid://15983967420'
+			skyobj.SkyboxRt = 'rbxassetid://15983966246'
+			skyobj.SkyboxUp = 'rbxassetid://15983964246'
+			skyobj.SkyboxFt = 'rbxassetid://5260817288'
+			skyobj.StarCount = 3000
+		end,
+		PurpleNight = function()
+			skyobj.MoonAngularSize = 0
+			skyobj.SunAngularSize = 0
+			skyobj.SkyboxBk = 'rbxassetid://5260808177'
+			skyobj.SkyboxDn = 'rbxassetid://5260653793'
+			skyobj.SkyboxFt = 'rbxassetid://5260817288'
+			skyobj.SkyboxLf = 'rbxassetid://5260800833'
+			skyobj.SkyboxRt = 'rbxassetid://5260800833'
+			skyobj.SkyboxUp = 'rbxassetid://5084576400'
+		end,
+		Aesthetic = function()
+			skyobj.MoonAngularSize = 0
+			skyobj.SunAngularSize = 0
+			skyobj.SkyboxBk = 'rbxassetid://1417494030'
+			skyobj.SkyboxDn = 'rbxassetid://1417494146'
+			skyobj.SkyboxFt = 'rbxassetid://1417494253'
+			skyobj.SkyboxLf = 'rbxassetid://1417494402'
+			skyobj.SkyboxRt = 'rbxassetid://1417494499'
+			skyobj.SkyboxUp = 'rbxassetid://1417494643'
+		end,
+		Aesthetic2 = function()
+			skyobj.MoonAngularSize = 0
+			skyobj.SunAngularSize = 0
+			skyobj.SkyboxBk = 'rbxassetid://600830446'
+			skyobj.SkyboxDn = 'rbxassetid://600831635'
+			skyobj.SkyboxFt = 'rbxassetid://600832720'
+			skyobj.SkyboxLf = 'rbxassetid://600886090'
+			skyobj.SkyboxRt = 'rbxassetid://600833862'
+			skyobj.SkyboxUp = 'rbxassetid://600835177'
+		end,
+		Pastel = function()
+			skyobj.SunAngularSize = 0
+			skyobj.MoonAngularSize = 0
+			skyobj.SkyboxBk = 'rbxassetid://2128458653'
+			skyobj.SkyboxDn = 'rbxassetid://2128462480'
+			skyobj.SkyboxFt = 'rbxassetid://2128458653'
+			skyobj.SkyboxLf = 'rbxassetid://2128462027'
+			skyobj.SkyboxRt = 'rbxassetid://2128462027'
+			skyobj.SkyboxUp = 'rbxassetid://2128462236'
+		end,
+		PurpleClouds = function()
+			skyobj.SkyboxBk = 'rbxassetid://570557514'
+			skyobj.SkyboxDn = 'rbxassetid://570557775'
+			skyobj.SkyboxFt = 'rbxassetid://570557559'
+			skyobj.SkyboxLf = 'rbxassetid://570557620'
+			skyobj.SkyboxRt = 'rbxassetid://570557672'
+			skyobj.SkyboxUp = 'rbxassetid://570557727'
+		end,
+		BetterSky = function()
+			if skyobj then
+			skyobj.SkyboxBk = 'rbxassetid://591058823'
+			skyobj.SkyboxDn = 'rbxassetid://591059876'
+			skyobj.SkyboxFt = 'rbxassetid://591058104'
+			skyobj.SkyboxLf = 'rbxassetid://591057861'
+			skyobj.SkyboxRt = 'rbxassetid://591057625'
+			skyobj.SkyboxUp = 'rbxassetid://591059642'
+			end
+		end,
+		BetterNight3 = function()
+			skyobj.MoonTextureId = 'rbxassetid://1075087760'
+			skyobj.SkyboxBk = 'rbxassetid://2670643994'
+			skyobj.SkyboxDn = 'rbxassetid://2670643365'
+			skyobj.SkyboxFt = 'rbxassetid://2670643214'
+			skyobj.SkyboxLf = 'rbxassetid://2670643070'
+			skyobj.SkyboxRt = 'rbxassetid://2670644173'
+			skyobj.SkyboxUp = 'rbxassetid://2670644331'
+			skyobj.MoonAngularSize = 1.5
+			skyobj.StarCount = 500
+		end,
+		Orange = function()
+			skyobj.SkyboxBk = 'rbxassetid://150939022'
+			skyobj.SkyboxDn = 'rbxassetid://150939038'
+			skyobj.SkyboxFt = 'rbxassetid://150939047'
+			skyobj.SkyboxLf = 'rbxassetid://150939056'
+			skyobj.SkyboxRt = 'rbxassetid://150939063'
+			skyobj.SkyboxUp = 'rbxassetid://150939082'
+		end,
+		DarkMountains = function()
+			skyobj.SkyboxBk = 'rbxassetid://5098814730'
+			skyobj.SkyboxDn = 'rbxassetid://5098815227'
+			skyobj.SkyboxFt = 'rbxassetid://5098815653'
+			skyobj.SkyboxLf = 'rbxassetid://5098816155'
+			skyobj.SkyboxRt = 'rbxassetid://5098820352'
+			skyobj.SkyboxUp = 'rbxassetid://5098819127'
+		end,
+		FlamingSunset = function()
+			skyobj.SkyboxBk = 'rbxassetid://415688378'
+			skyobj.SkyboxDn = 'rbxassetid://415688193'
+			skyobj.SkyboxFt = 'rbxassetid://415688242'
+			skyobj.SkyboxLf = 'rbxassetid://415688310'
+			skyobj.SkyboxRt = 'rbxassetid://415688274'
+			skyobj.SkyboxUp = 'rbxassetid://415688354'
+		end,
+		NewYork = function()
+			skyobj.SkyboxBk = 'rbxassetid://11333973069'
+			skyobj.SkyboxDn = 'rbxassetid://11333969768'
+			skyobj.SkyboxFt = 'rbxassetid://11333964303'
+			skyobj.SkyboxLf = 'rbxassetid://11333971332'
+			skyobj.SkyboxRt = 'rbxassetid://11333982864'
+			skyobj.SkyboxUp = 'rbxassetid://11333967970'
+			skyobj.SunAngularSize = 0
+		end,
+		Aesthetic3 = function()
+			skyobj.SkyboxBk = 'rbxassetid://151165214'
+			skyobj.SkyboxDn = 'rbxassetid://151165197'
+			skyobj.SkyboxFt = 'rbxassetid://151165224'
+			skyobj.SkyboxLf = 'rbxassetid://151165191'
+			skyobj.SkyboxRt = 'rbxassetid://151165206'
+			skyobj.SkyboxUp = 'rbxassetid://151165227'
+		end,
+		FakeClouds = function()
+			skyobj.SkyboxBk = 'rbxassetid://8496892810'
+			skyobj.SkyboxDn = 'rbxassetid://8496896250'
+			skyobj.SkyboxFt = 'rbxassetid://8496892810'
+			skyobj.SkyboxLf = 'rbxassetid://8496892810'
+			skyobj.SkyboxRt = 'rbxassetid://8496892810'
+			skyobj.SkyboxUp = 'rbxassetid://8496897504'
+			skyobj.SunAngularSize = 0
+		end,
+		LunarNight = function()
+			skyobj.SkyboxBk = 'rbxassetid://187713366'
+			skyobj.SkyboxDn = 'rbxassetid://187712428'
+			skyobj.SkyboxFt = 'rbxassetid://187712836'
+			skyobj.SkyboxLf = 'rbxassetid://187713755'
+			skyobj.SkyboxRt = 'rbxassetid://187714525'
+			skyobj.SkyboxUp = 'rbxassetid://187712111'
+			skyobj.SunAngularSize = 0
+			skyobj.StarCount = 0
+		end,
+		PitchDark = function()
+			skyobj.StarCount = 0
+			oldtime = lightingService.TimeOfDay
+			lightingService.TimeOfDay = '00:00:00'
+			table.insert(Atmosphere.Connections, lightingService:GetPropertyChangedSignal('TimeOfDay'):Connect(function()
+				skyobj.StarCount = 0
+				lightingService.TimeOfDay = '00:00:00'
+			end))
+		end
+	}
+
+	Atmosphere = vape.Categories.Modules:CreateModule({
+		Name = 'Atmosphere',
+		ExtraText = function()
+			return AtmosphereMethod.Value ~= 'Custom' and AtmosphereMethod.Value or ''
+		end,
+		Function = function(callback)
+			if callback then 
+				for i,v in next, (lightingService:GetChildren()) do 
+					if v:IsA('PostEffect') or v:IsA('Sky') then 
+						table.insert(oldobjects, v)
+						v.Parent = game
+					end
+				end
+				skyobj = Instance.new('Sky')
+				skyobj.Parent = lightingService
+				skyatmosphereobj = Instance.new('ColorCorrectionEffect')
+			    skyatmosphereobj.TintColor = Color3.fromHSV(SkyColor.Hue, SkyColor.Sat, SkyColor.Value)
+			    skyatmosphereobj.Parent = lightingService
+				task.spawn(themetable[AtmosphereMethod.Value])
+			else
+				if skyobj then skyobj:Destroy() end
+				if skyatmosphereobj then skyatmosphereobj:Destroy() end
+				for i,v in next, (oldobjects) do 
+					v.Parent = lightingService
+				end
+				if oldtime then 
+					lightingService.TimeOfDay = oldtime
+					oldtime = nil
+				end
+				table.clear(oldobjects)
+			end
+		end
+	})
+	local themetab = {'Custom'}
+	for i,v in themetable do 
+		table.insert(themetab, i)
+	end
+	AtmosphereMethod = Atmosphere:CreateDropdown({
+		Name = 'Mode',
+		List = themetab,
+		Function = function(val)
+			task.spawn(function()
+			if Atmosphere.Enabled then 
+				Atmosphere.ToggleButton()
+				if val == 'Custom' then task.wait() end -- why is this needed :bruh:
+				Atmosphere.ToggleButton()
+			end
+			for i,v in skythemeobjects do 
+				v.Object.Visible = AtmosphereMethod.Value == 'Custom'
+			end
+		    end)
+		end
+	})
+	SkyUp = Atmosphere:CreateTextBox({
+		Name = 'SkyUp',
+		TempText = 'Sky Top ID',
+		FocusLost = function(enter) 
+			if Atmosphere.Enabled then 
+				Atmosphere.ToggleButton()
+				Atmosphere.ToggleButton()
+			end
+		end
+	})
+	SkyDown = Atmosphere:CreateTextBox({
+		Name = 'SkyDown',
+		TempText = 'Sky Bottom ID',
+		FocusLost = function(enter) 
+			if Atmosphere.Enabled then 
+				Atmosphere.ToggleButton()
+				Atmosphere.ToggleButton()
+			end
+		end
+	})
+	SkyLeft = Atmosphere:CreateTextBox({
+		Name = 'SkyLeft',
+		TempText = 'Sky Left ID',
+		FocusLost = function(enter) 
+			if Atmosphere.Enabled then 
+				Atmosphere.ToggleButton()
+				Atmosphere.ToggleButton()
+			end
+		end
+	})
+	SkyRight = Atmosphere:CreateTextBox({
+		Name = 'SkyRight',
+		TempText = 'Sky Right ID',
+		FocusLost = function(enter) 
+			if Atmosphere.Enabled then 
+				Atmosphere.ToggleButton()
+				Atmosphere.ToggleButton()
+			end
+		end
+	})
+	SkyFront = Atmosphere:CreateTextBox({
+		Name = 'SkyFront',
+		TempText = 'Sky Front ID',
+		FocusLost = function(enter) 
+			if Atmosphere.Enabled then 
+				Atmosphere.ToggleButton()
+				Atmosphere.ToggleButton()
+			end
+		end
+	})
+	SkyBack = Atmosphere:CreateTextBox({
+		Name = 'SkyBack',
+		TempText = 'Sky Back ID',
+		FocusLost = function(enter) 
+			if Atmosphere.Enabled then 
+				Atmosphere.ToggleButton()
+				Atmosphere.ToggleButton()
+			end
+		end
+	})
+	SkySun = Atmosphere:CreateTextBox({
+		Name = 'SkySun',
+		TempText = 'Sky Sun ID',
+		FocusLost = function(enter) 
+			if Atmosphere.Enabled then 
+				Atmosphere.ToggleButton()
+				Atmosphere.ToggleButton()
+			end
+		end
+	})
+	SkyMoon = Atmosphere:CreateTextBox({
+		Name = 'SkyMoon',
+		TempText = 'Sky Moon ID',
+		FocusLost = function(enter) 
+			if Atmosphere.Enabled then 
+				Atmosphere.ToggleButton()
+				Atmosphere.ToggleButton()
+			end
+		end
+	})
+	SkyColor = Atmosphere:CreateColorSlider({
+		Name = 'Color',
+		Function = function(h, s, v)
+			if skyatmosphereobj then 
+				skyatmosphereobj.TintColor = Color3.fromHSV(SkyColor.Hue, SkyColor.Sat, SkyColor.Value)
+			end
+		end
+	})
+	table.insert(skythemeobjects, SkyUp)
+	table.insert(skythemeobjects, SkyDown)
+	table.insert(skythemeobjects, SkyLeft)
+	table.insert(skythemeobjects, SkyRight)
+	table.insert(skythemeobjects, SkyFront)
+	table.insert(skythemeobjects, SkyBack)
+	table.insert(skythemeobjects, SkySun)
+	table.insert(skythemeobjects, SkyMoon)
 end)
