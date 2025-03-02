@@ -824,7 +824,11 @@ run(function()
 							local userLevel, attackable, tags = whitelist:get(player)
 							if tags then
 								for _, tag in pairs(tags) do
-									tag_result ..= `<font color="#{Color3.new(unpack(tag.color)):ToHex():lower()}">[{tag.text}]</font> `
+									if typeof(tag.color) == "table" then
+										tag_result ..= `<font color="#{Color3.fromRGB(unpack(tag.color)):ToHex():lower()}">[{tag.text}]</font> `
+									else
+										tag_result ..= `<font color="#{tag.color:ToHex():lower()}">[{tag.text}]</font> `
+									end
 								end
 							end
 						end
