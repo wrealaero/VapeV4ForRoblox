@@ -260,6 +260,15 @@ local function FindItemDrop(item)
 	return itemdist
 end
 
+local function getItem(itemName, inv)
+	for slot, item in (inv or store.inventory.inventory.items) do
+		if item.itemType == itemName then
+			return item, slot
+		end
+	end
+	return nil
+end
+
 local vapeAssert = function(argument, title, text, duration, hault, moduledisable, module) 
 	if not argument then
     local suc, res = pcall(function()
@@ -842,7 +851,7 @@ run(function()
 		["Function"] = function(callback)
 			if callback then
 				repeat
-					task.wait()
+					wait()
 					if getItem("infernal_saber") then
 						local args = {
 							[1] = {
