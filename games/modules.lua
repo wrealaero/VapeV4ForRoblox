@@ -2188,15 +2188,12 @@ run(function()
 	end
 }
 
-Atmosphere = rendervape.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
+Atmosphere = vape.Categories.Modules:CreateModule({
 		Name = 'Atmosphere',
-		ExtraText = function()
-			return AtmosphereMethod.Value ~= 'Custom' and AtmosphereMethod.Value or ''
-		end,
 		Function = function(callback)
 			if callback then 
 				pcall(function()
-					for i,v in (lighting:GetChildren()) do 
+					for i,v in (lightingService:GetChildren()) do 
 						if v:IsA('PostEffect') or v:IsA('Sky') then 
 							table.insert(oldobjects, v)
 							v.Parent = game
@@ -2204,34 +2201,33 @@ Atmosphere = rendervape.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButt
 					end
 				end)
 				skyobj = Instance.new('Sky')
-				skyobj.Parent = lighting
+				skyobj.Parent = lightingService
 				skyatmosphereobj = Instance.new('ColorCorrectionEffect')
 			    skyatmosphereobj.TintColor = Color3.fromHSV(SkyColor.Hue, SkyColor.Sat, SkyColor.Value)
-			    skyatmosphereobj.Parent = lighting
+			    skyatmosphereobj.Parent = lightingService
 				task.spawn(themetable[AtmosphereMethod.Value]);
-				table.insert(Atmosphere.Connections, lighting.ChildAdded:Connect(function(object: Sky?)
+				table.insert(Atmosphere.Connections, lightingService.ChildAdded:Connect(function(object: Sky?)
 					if object.ClassName == 'Sky' then 
 						skyobj:Destroy();
-						skyobj = Instance.new('Sky', lighting);
+						skyobj = Instance.new('Sky', lightingService);
 						task.spawn(themetable[AtmosphereMethod.Value])
 					end
 				end));
-				table.insert(Atmosphere.Connections, lighting.ChildRemoved:Connect(function(object: Sky?)
+				table.insert(Atmosphere.Connections, lightingService.ChildRemoved:Connect(function(object: Sky?)
 					if object.ClassName == 'Sky' then 
 						skyobj:Destroy();
-						skyobj = Instance.new('Sky', lighting);
+						skyobj = Instance.new('Sky', lightingService);
 						task.spawn(themetable[AtmosphereMethod.Value])
 					end
 				end));
-				rendervape.objects.LightingModsOptionsButton.Api:retoggle();
 			else
 				if skyobj then skyobj:Destroy() end
 				if skyatmosphereobj then skyatmosphereobj:Destroy() end
 				for i,v in (oldobjects) do 
-					v.Parent = lighting
+					v.Parent = lightingService
 				end
 				if oldtime then 
-					lighting.TimeOfDay = oldtime
+					lightingService.TimeOfDay = oldtime
 					oldtime = nil
 				end
 				table.clear(oldobjects)
@@ -2242,7 +2238,7 @@ Atmosphere = rendervape.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButt
 	for i,v in themetable do 
 		table.insert(themetab, i)
 	end
-	AtmosphereMethod = Atmosphere.CreateDropdown({
+	AtmosphereMethod = Atmosphere:CreateDropdown({
 		Name = 'Mode',
 		List = themetab,
 		Function = function(val)
@@ -2258,63 +2254,63 @@ Atmosphere = rendervape.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButt
 		    end)
 		end
 	})
-	SkyUp = Atmosphere.CreateTextBox({
+	SkyUp = Atmosphere:CreateTextBox({
 		Name = 'SkyUp',
 		TempText = 'Sky Top ID',
 		FocusLost = function(enter) 
 			Atmosphere:retoggle()
 		end
 	})
-	SkyDown = Atmosphere.CreateTextBox({
+	SkyDown = Atmosphere:CreateTextBox({
 		Name = 'SkyDown',
 		TempText = 'Sky Bottom ID',
 		FocusLost = function(enter) 
 			Atmosphere:retoggle()
 		end
 	})
-	SkyLeft = Atmosphere.CreateTextBox({
+	SkyLeft = Atmosphere:CreateTextBox({
 		Name = 'SkyLeft',
 		TempText = 'Sky Left ID',
 		FocusLost = function(enter) 
 			Atmosphere:retoggle()
 		end
 	})
-	SkyRight = Atmosphere.CreateTextBox({
+	SkyRight = Atmosphere:CreateTextBox({
 		Name = 'SkyRight',
 		TempText = 'Sky Right ID',
 		FocusLost = function(enter) 
 			Atmosphere:retoggle()
 		end
 	})
-	SkyFront = Atmosphere.CreateTextBox({
+	SkyFront = Atmosphere:CreateTextBox({
 		Name = 'SkyFront',
 		TempText = 'Sky Front ID',
 		FocusLost = function(enter) 
 			Atmosphere:retoggle()
 		end
 	})
-	SkyBack = Atmosphere.CreateTextBox({
+	SkyBack = Atmosphere:CreateTextBox({
 		Name = 'SkyBack',
 		TempText = 'Sky Back ID',
 		FocusLost = function(enter) 
 			Atmosphere:retoggle()
 		end
 	})
-	SkySun = Atmosphere.CreateTextBox({
+	SkySun = Atmosphere:CreateTextBox({
 		Name = 'SkySun',
 		TempText = 'Sky Sun ID',
 		FocusLost = function(enter) 
 			Atmosphere:retoggle()
 		end
 	})
-	SkyMoon = Atmosphere.CreateTextBox({
+	SkyMoon = Atmosphere:CreateTextBox({
 		Name = 'SkyMoon',
 		TempText = 'Sky Moon ID',
 		FocusLost = function(enter) 
 			Atmosphere:retoggle()
 		end
 	})
-	SkyColor = Atmosphere.CreateColorSlider({
+	SkyColor = Atmosphere:CreateColorSlider({
 		Name = 'Color',
 		Function = function(h, s, v)
 			if skyatmosphereobj then 
