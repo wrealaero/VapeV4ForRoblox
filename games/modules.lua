@@ -1,3 +1,4 @@
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -2202,7 +2203,7 @@ run(function() -- pasted from old render once again
 									[2] = HotbarMaximumRotation.Value - math.random(1, 14)
 								};
 								for i: number, v: number in integers do 
-									local rotationtween: Tween = tween:Create(gradient, TweenInfo.new(0.1 * HotbarAnimationSpeed.Value), {Rotation = v});
+									local rotationtween: Tween = tweenService:Create(gradient, TweenInfo.new(0.1 * HotbarAnimationSpeed.Value), {Rotation = v});
 									rotationtween:Play();
 									rotationtween.Completed:Wait();
 									task.wait(0.3);
