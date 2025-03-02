@@ -3100,7 +3100,7 @@ run(function()
 								task.spawn(function()
 									repeat
 										task.wait()
-										lplr.Character.PrimaryPart.Velocity = Vector3.new(lplr.Character.PrimaryPart.Velocity.X, lplr.Character.PrimaryPart.Velocity.X+0.5, lplr.Character.PrimaryPart.Velocity.Z)
+										lplr.Character.PrimaryPart.Velocity = Vector3.new(lplr.Character.PrimaryPart.Velocity.X, lplr.Character.PrimaryPart.Velocity.Y+0.5, lplr.Character.PrimaryPart.Velocity.Z)
 									until not lastdetect
 								end)
 							elseif not detect then
