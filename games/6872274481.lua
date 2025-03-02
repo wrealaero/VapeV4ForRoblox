@@ -3093,12 +3093,16 @@ run(function()
 						params.FilterDescendantsInstances = {lplr.Character}
 						params.FilterType = Enum.RaycastFilterType.Blacklist
 
-						local detect = workspace:Raycast(lplr.Character.HumanoidRootPart.Position - Vector3.new(0, 2, 0), Vector3.new(0, math.min(-15, lplr.Character.PrimaryPart.Velocity.X/3), 0, params))
+						local detect = workspace:Raycast(lplr.Character.HumanoidRootPart.Position - Vector3.new(0, 2, 0), Vector3.new(0, math.min(-15, lplr.Character.PrimaryPart.Velocity.X/2), 0, params))
 						if lplr.Character.PrimaryPart.Velocity.Y < -60 then
 							if not lastdetect and detect then
-								warn(detect.Instance:GetFullName())
 								lastdetect = true
-								lplr.Character.PrimaryPart.Velocity = Vector3.new(lplr.Character.PrimaryPart.Velocity.X, 5, lplr.Character.PrimaryPart.Velocity.Z)
+								task.spawn(function()
+									repeat
+										task.wait()
+										lplr.Character.PrimaryPart.Velocity = Vector3.new(lplr.Character.PrimaryPart.Velocity.X, lplr.Character.PrimaryPart.Velocity.X+0.5, lplr.Character.PrimaryPart.Velocity.Z)
+									until not lastdetect
+								end)
 							elseif not detect then
 								lastdetect = false
 							end
