@@ -842,23 +842,24 @@ run(function()
 		["Function"] = function(callback)
 			if callback then
 				repeat
-				wait(0.001)
-				function getNil(name,class) for _,v in next, getnilinstances() do if v.ClassName==class and v.Name==name then return v;end end end
-				local args = {
-					[1] = {
-						["chargeTime"] = 0.9,
-						["player"] = game:GetService("Players").LocalPlayer,
-						["weapon"] = getNil("infernal_saber", "Accessory")
-					}
-				}
-	
-				game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("HellBladeRelease"):FireServer(unpack(args))
-			until not InfernalKill["Enabled"]
-		end
-			end,
-			["Description"] = "Amber Exploit"
-		})
-	end)
+					task.wait()
+					if getItem("infernal_saber") then
+						local args = {
+							[1] = {
+								["chargeTime"] = 0.9,
+								["player"] = game:GetService("Players").LocalPlayer,
+								["weapon"] = getItem("infernal_saber").tool
+							}
+						}
+			
+						game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("HellBladeRelease"):FireServer(unpack(args))
+					end
+				until not InfernalKill["Enabled"]
+			end
+		end,
+		["Description"] = "Amber Exploit"
+	})
+end)
 
 run(function()
     local NightmareEventButton
