@@ -129,8 +129,10 @@ end
 
 local XStore = {
 	bedtable = {},
-	Tweening = false
+	Tweening = false,
+	AntiHitting = false
 }
+XFunctions:SetGlobalData('XStore', XStore)
 
 local function getrandomvalue(tab)
 	return #tab > 0 and tab[math.random(1, #tab)] or ''
@@ -736,6 +738,7 @@ run(function()
 												if not lplr.Character:WaitForChild("HumanoidRootPart"):FindFirstChildOfClass("BodyVelocity") then
 													repeat task.wait() until store.matchState ~= 0
 													if not (v.Character.HumanoidRootPart.Velocity.Y < -10*5) then
+														XStore.AntiHitting = true
 														lplr.Character.Archivable = true
 				
 														local Clone = lplr.Character:Clone()
@@ -768,6 +771,8 @@ run(function()
 														task.wait(0.15)
 													end
 												end
+											else
+												XStore.AntiHitting = false
 											end
 										end
 									end

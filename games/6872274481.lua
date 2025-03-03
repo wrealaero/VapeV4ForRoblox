@@ -3118,7 +3118,7 @@ run(function()
 				local velocityThreshold = -VelocityThreshold.Value
 				
 				CoreConnection = game:GetService("RunService").Heartbeat:Connect(function()
-					if not entitylib.isAlive then return end
+					if not entitylib.isAlive or XStore.AntiHitting then return end
 					if LongJump.Enabled then return end
 					local humanoid = entitylib.character.Humanoid
 					local rootPart = entitylib.character.HumanoidRootPart
