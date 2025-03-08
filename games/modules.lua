@@ -2446,21 +2446,3 @@ run(function() -- pasted from old render once again
 	HotbarMaximumRotation.Object.Visible = false;
 	HotbarAnimationSpeed.Object.Visible = false;
 end);
-
-run(function()
-    local MelodyExploit = {Enabled = false}
-    MelodyExploit = vape.Categories.Modules:CreateModule({
-        Name = "MelodyExploit",
-        Function = function(callback)
-            if callback then
-                MelodyExploit:Clean(runService.RenderStepped:Connect(function()
-                    if getItem("guitar") then
-                        if lplr.Character and lplr.Character.Humanoid.Health < lplr.Character.Humanoid.MaxHealth then
-                            bedwars.Client:Get(bedwars.GuitarHealRemote):SendToServer({healTarget = lplr.Character})
-                        end
-                    end
-                end))
-            end
-        end
-    })
-end)
