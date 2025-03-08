@@ -1,5 +1,6 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local run = function(func)
 	func()
 end
@@ -3129,7 +3130,7 @@ run(function()
 							if distance > safeRange then
 								local newPosition = Vector3.new(
 									rootPart.Position.X,
-									ray.Position.Y + 0.1, 
+									ray.Position.Y + 0.1,
 									rootPart.Position.Z
 								)
 								rootPart.CFrame = CFrame.new(newPosition) * rootPart.CFrame.Rotation
