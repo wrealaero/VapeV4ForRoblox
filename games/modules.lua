@@ -1,5 +1,3 @@
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -889,6 +887,22 @@ run(function()
 			end
 		end,
 		["Description"] = "SkyScytheExploit"
+	})
+end)
+
+run(function()
+	local PartyPopperExploit = {Enabled = false}
+	PartyPopperExploit = vape.Categories.Modules:CreateModule({
+		["Name"] = "PartyPopperExploit",
+		["Function"] = function(callback)
+			if callback then
+				repeat
+					wait()
+					bedwars.AbilityController:useAbility('PARTY_POPPER')
+				until not PartyPopperExploit["Enabled"]
+			end
+		end,
+		["Description"] = "PartyPopperExploit"
 	})
 end)
 

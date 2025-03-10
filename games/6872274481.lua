@@ -1,6 +1,3 @@
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 local run = function(func)
 	func()
 end
@@ -3118,8 +3115,8 @@ run(function()
 				local safeRange = SafeRange.Value
 				local velocityThreshold = -VelocityThreshold.Value
 				
-				CoreConnection = game:GetService("RunService").Heartbeat:Connect(function()
-					if not entitylib.isAlive or XStore.AntiHitting then return end
+				NoFall:Clean(game:GetService("RunService").Heartbeat:Connect(function()
+					if not entitylib.isAlive and XStore.AntiHitting then return end
 					if LongJump.Enabled then return end
 					local humanoid = entitylib.character.Humanoid
 					local rootPart = entitylib.character.HumanoidRootPart
@@ -3137,11 +3134,7 @@ run(function()
 							end
 						end
 					end
-				end)				
-			else
-				pcall(function()
-					CoreConnection:Disconnect()
-				end)
+				end))			
 			end
 		end,
 		HoverText = "Prevents taking fall damage."
