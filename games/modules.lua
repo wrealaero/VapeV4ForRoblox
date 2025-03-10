@@ -907,6 +907,22 @@ run(function()
 end)
 
 run(function()
+	local TrainWhistleExploit = {Enabled = false}
+	TrainWhistleExploit = vape.Categories.Modules:CreateModule({
+		["Name"] = "TrainWhistleExploit",
+		["Function"] = function(callback)
+			if callback then
+				repeat
+					wait()
+					bedwars.AbilityController:useAbility('TRAIN_WHISTLE')
+				until not TrainWhistleExploit["Enabled"]
+			end
+		end,
+		["Description"] = "TrainWhistleExploit"
+	})
+end)
+
+run(function()
     local NightmareEventButton
     NightmareEventButton = vape.Categories.Modules:CreateModule({
         Name = "Nightmare Emote",
