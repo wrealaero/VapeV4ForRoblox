@@ -859,21 +859,36 @@ run(function()
 			if callback then
 				repeat
 					wait()
-					if getItem("infernal_saber") then
-						local args = {
-							[1] = {
-								["chargeTime"] = 0.9,
-								["player"] = game:GetService("Players").LocalPlayer,
-								["weapon"] = getItem("infernal_saber").tool
-							}
-						}
-			
-						game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("HellBladeRelease"):FireServer(unpack(args))
+					local tmp = getItem("infernal_saber")
+					if tmp then
+						bedwars.Client:Get('HellBladeRelease'):SendToServer({
+							weapon = tmp.tool;
+							player = game:GetService("Players").LocalPlayer;
+							chargeTime = 0.9;
+						})
 					end
 				until not InfernalKill["Enabled"]
 			end
 		end,
-		["Description"] = "Amber Exploit"
+		["Description"] = "Ember Exploit"
+	})
+end)
+
+run(function()
+	local SkyScytheKill = {Enabled = false}
+	SkyScytheKill = vape.Categories.Modules:CreateModule({
+		["Name"] = "SkyScytheExploit",
+		["Function"] = function(callback)
+			if callback then
+				repeat
+					wait()
+					if getItem("sky_scythe") then
+						bedwars.Client:Get('SkyScytheSpin'):SendToServer()
+					end
+				until not SkyScytheKill["Enabled"]
+			end
+		end,
+		["Description"] = "SkyScytheExploit"
 	})
 end)
 
