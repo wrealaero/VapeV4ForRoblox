@@ -6410,7 +6410,6 @@ targetinfoobj = mainapi:CreateOverlay({
 			task.spawn(function()
 				repeat
 					targetinfo:UpdateInfo()
-					task.wait()
 				until not targetinfoobj.Button or not targetinfoobj.Button.Enabled
 			end)
 		end
