@@ -31,22 +31,38 @@ end
 local playersService = cloneref(game:GetService('Players'))
 
 local function downloadFile(path, func)
+    -- Ensure the folder exists
+    local parentFolder = path:match("(.*/)")
+    if parentFolder and not isfolder(parentFolder) then
+        makefolder(parentFolder)
+    end
+
+    -- Handle missing targetinfoicon.png
+    if path:find("targetinfoicon.png") then 
+        if not isfile(path) then
+            warn("Skipping missing image:", path)
+            return nil
+        end
+    end
+
+    -- Proceed with normal download if file isn't already there
     if not isfile(path) then
         local suc, res = pcall(function()
-            return game:HttpGet('https://raw.githubusercontent.com/wrealaero/VapeV4ForRoblox/'..readfile('newvape/profiles/commit.txt')..'/'..select(1, path:gsub('newvape/', '')), true)
+            return game:HttpGet('https://raw.githubusercontent.com/wrealaero/VapeV4ForRoblox/'..
+                readfile('newvape/profiles/commit.txt')..'/'..select(1, path:gsub('newvape/', '')), true)
         end)
-        
+
         -- Debugging: Print the error message if the download fails
         if not suc or res == '404: Not Found' then
             warn("Failed to download:", path, "| Error:", res)
             return nil -- Stop here if the file couldn't be downloaded
         end
-        
+
         -- Add watermark to Lua files
         if path:find('.lua') then
             res = '--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.\n'..res
         end
-        
+
         writefile(path, res) -- Save the downloaded file
     end
     
