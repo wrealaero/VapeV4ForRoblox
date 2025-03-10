@@ -6396,26 +6396,6 @@ VapeLabelSorter.Parent = VapeLabelHolder
 	Target Info
 ]]
 
-local targetinfo
-local targetinfoobj
-local targetinfobcolor
-targetinfoobj = mainapi:CreateOverlay({
-	Name = 'Target Info',
-	Icon = getcustomasset('newvape/assets/new/targetinfoicon.png'),
-	Size = UDim2.fromOffset(14, 14),
-	Position = UDim2.fromOffset(12, 14),
-	CategorySize = 240,
-	Function = function(callback)
-		if callback then
-			task.spawn(function()
-				repeat
-					targetinfo:UpdateInfo()
-				until not targetinfoobj.Button or not targetinfoobj.Button.Enabled
-			end)
-		end
-	end
-})
-
 local targetinfobkg = Instance.new('Frame')
 targetinfobkg.Size = UDim2.fromOffset(240, 89)
 targetinfobkg.BackgroundColor3 = color.Dark(uipallet.Main, 0.1)
