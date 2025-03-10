@@ -12,7 +12,7 @@ local function downloadFile(path, func)
 	if not isfile(path) then
 		local suc, res = pcall(function()
 			local commit = isfile('newvape/profiles/commit.txt') and readfile('newvape/profiles/commit.txt') or 'main'
-			return game:HttpGet('https://raw.githubusercontent.com/wrealaero/AeroutV4/'..commit..'/'..path:gsub('newvape/', ''), true)
+			return game:HttpGet('https://raw.githubusercontent.com/wrealaero/VapeV4ForRoblox/'..commit..'/'..path:gsub('newvape/', ''), true)
 		end)
 		if not suc or res == '404: Not Found' then
 			error(res)
@@ -46,7 +46,7 @@ local commit = 'main'
 
 if not shared.VapeDeveloper then
 	local success, subbed = pcall(function()
-		return game:HttpGet('https://github.com/wrealaero/AeroutV4')
+		return game:HttpGet('https://github.com/wrealaero/VapeV4ForRoblox')
 	end)
 
 	if not success or not subbed or subbed == '' then
