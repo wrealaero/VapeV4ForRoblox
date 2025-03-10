@@ -394,24 +394,27 @@ run(function()
 	end))
 end)
 
-		oldchat = hookfunction(func, function(data, ...)
-			local plr = playersService:GetPlayerByUserId(data.SpeakerUserId)
-			if plr then
-				data.ExtraData.Tags = data.ExtraData.Tags or {}
-				for _, v in self:tag(plr) do
-					table.insert(data.ExtraData.Tags, {TagText = v.text, TagColor = v.color})
-				end
-				if data.Message and self:process(data.Message, plr) then
-					data.Message = ''
-				end
-			end
-			return oldchat(data, ...)
-		end)
+oldchat = hookfunction(func, function(data, ...)
+    local plr = playersService:GetPlayerByUserId(data.SpeakerUserId)
+    if plr then
+        data.ExtraData.Tags = data.ExtraData.Tags or {}
+        if self and self.tag then
+            for _, v in self:tag(plr) do
+                table.insert(data.ExtraData.Tags, {TagText = v.text, TagColor = v.color})
+            end
+        end
+        if data.Message and self and self.process then 
+            if self:process(data.Message, plr) then
+                data.Message = ''
+            end
+        end
+    end
+    return oldchat(data, ...)
+end)
 
-		vape:Clean(function()
-			hookfunction(func, oldchat)
-		end)
-	end
+vape:Clean(function()
+    hookfunction(func, oldchat)
+end)
 
 entitylib.start()
 run(function()
@@ -3146,25 +3149,25 @@ run(function()
 	local Folder = Instance.new('Folder')
 	Folder.Parent = vape.gui
 	
-	local function Added(ent)
-		if not Targets.Players.Enabled and ent.Player then return end
-		if not Targets.NPCs.Enabled and ent.NPC then return end
-		if Teammates.Enabled and (not ent.Targetable) and (not ent.Friend) and (not ent.Friend) then return end
-		if vape.ThreadFix then
-			setthreadidentity(8)
-		end
-		local EntityArrow = Instance.new('ImageLabel')
-		EntityArrow.Size = UDim2.fromOffset(256, 256)
-		EntityArrow.Position = UDim2.fromScale(0.5, 0.5)
-		EntityArrow.AnchorPoint = Vector2.new(0.5, 0.5)
-		EntityArrow.BackgroundTransparency = 1
-		EntityArrow.BorderSizePixel = 0
-		EntityArrow.Visible = false
-		EntityArrow.Image = getcustomasset('newvape/assets/new/arrowmodule.png')
-		EntityArrow.ImageColor3 = entitylib.getEntityColor(ent) or Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
-		EntityArrow.Parent = Folder
-		Reference[ent] = EntityArrow
-	end
+local function Added(ent)
+    if not Targets.Players.Enabled and ent.Player then return end
+    if not Targets.NPCs.Enabled and ent.NPC then return end
+    if Teammates.Enabled and (not ent.Targetable) and (not ent.Friend) then return end
+    if vape.ThreadFix then
+        setthreadidentity(8)
+    end
+    local EntityArrow = Instance.new('ImageLabel')
+    EntityArrow.Size = UDim2.fromOffset(256, 256)
+    EntityArrow.Position = UDim2.fromScale(0.5, 0.5)
+    EntityArrow.AnchorPoint = Vector2.new(0.5, 0.5)
+    EntityArrow.BackgroundTransparency = 1
+    EntityArrow.BorderSizePixel = 0
+    EntityArrow.Visible = false
+    EntityArrow.Image = getcustomasset('newvape/assets/new/arrowmodule.png')
+    EntityArrow.ImageColor3 = entitylib.getEntityColor(ent) or Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
+    EntityArrow.Parent = Folder
+    Reference[ent] = EntityArrow
+end  
 	
 	local function Removed(ent)
 		local v = Reference[ent]
