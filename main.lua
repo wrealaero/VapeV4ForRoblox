@@ -113,7 +113,7 @@ local PerformanceModule = loadstring(downloadFile('newvape/libraries/performance
 XFunctions:SetGlobalData('Performance', PerformanceModule)
 
 local utils_functions = loadstring(downloadFile('newvape/libraries/utils.lua'), 'Utils')()
-for i, v in pairs(utils_functions) do --> sideloads all render global utility functions from libraries/utils.lua
+for i: (any), v: (...any) -> (...any) in utils_functions do --> sideloads all render global utility functions from libraries/utils.lua
     getfenv()[i] = v;
 end;
 
