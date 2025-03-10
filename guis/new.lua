@@ -6405,22 +6405,33 @@ VapeLabelSorter.Parent = VapeLabelHolder
 local targetinfo
 local targetinfoobj
 local targetinfobcolor
+
 targetinfoobj = mainapi:CreateOverlay({
-	Name = 'Target Info',
-	Icon = getcustomasset('newvape/assets/new/targetinfoicon.png'),
-	Size = UDim2.fromOffset(14, 14),
-	Position = UDim2.fromOffset(12, 14),
-	CategorySize = 240,
-	Function = function(callback)
-		if callback then
-			task.spawn(function()
-				repeat
-					targetinfo:UpdateInfo()
-					task.wait()
-				until not targetinfoobj.Button or not targetinfoobj.Button.Enabled
-			end)
-		end
-	end
+    Name = 'Target Info',
+    Icon = getcustomasset('newvape/assets/new/targetinfoicon.png'),
+    Size = UDim2.fromOffset(14, 14),
+    Position = UDim2.fromOffset(12, 14),
+    CategorySize = 240,
+    Function = function(callback)
+        if callback then
+            task.spawn(function()
+                -- Wrap the repeat loop in a pcall to continue running even if an error occurs
+                local success, errorMessage = pcall(function()
+                    repeat
+                        if targetinfo then
+                            targetinfo:UpdateInfo()
+                        end
+                        task.wait()
+                    until not targetinfoobj.Button or not targetinfoobj.Button.Enabled
+                end)
+
+                -- If there was an error, print the error message but keep the script running
+                if not success then
+                    print("Error occurred in targetinfo update: " .. errorMessage)
+                end
+            end)
+        end
+    end
 })
 
 local targetinfobkg = Instance.new('Frame')
