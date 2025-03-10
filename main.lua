@@ -39,9 +39,12 @@ local function downloadFile(path, func)
 
     -- Handle missing targetinfoicon.png
     if path:find("targetinfoicon.png") then 
-        if not isfile(path) then
+        if isfile(path) then
+            warn("Image already exists:", path)
+            return readfile(path) -- Return the existing file
+        else
             warn("Skipping missing image:", path)
-            return nil
+            return nil -- Prevent infinite waiting
         end
     end
 
