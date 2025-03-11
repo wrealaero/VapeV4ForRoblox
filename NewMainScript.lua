@@ -11,8 +11,7 @@ end
 local function downloadFile(path, func)
 	if not isfile(path) then
 		local suc, res = pcall(function()
-			local commit = isfile('newvape/profiles/commit.txt') and readfile('newvape/profiles/commit.txt') or 'main'
-			return game:HttpGet('https://raw.githubusercontent.com/wrealaero/VapeV4ForRoblox/'..commit..'/'..path:gsub('newvape/', ''), true)
+			return game:HttpGet('https://raw.githubusercontent.com/wrealaero/VapeV4ForRoblox/'..readfile('newvape/profiles/commit.txt')..'/'..select(1, path:gsub('newvape/', '')), true)
 		end)
 		if not suc or res == '404: Not Found' then
 			error(res)
@@ -41,50 +40,20 @@ for _, folder in {'newvape', 'newvape/games', 'newvape/profiles', 'newvape/asset
 	end
 end
 
-local commitFile = 'newvape/profiles/commit.txt'
-local commit = 'main'
-
 if not shared.VapeDeveloper then
-	local success, subbed = pcall(function()
+	local _, subbed = pcall(function()
 		return game:HttpGet('https://github.com/wrealaero/VapeV4ForRoblox')
 	end)
-
-	if not success or not subbed or subbed == '' then
-		error("Failed to fetch repository data.")
-	end
-
-	local commitIndex = subbed:find('currentOid')
-	if commitIndex then
-		commit = subbed:sub(commitIndex + 13, commitIndex + 52)
-		if #commit ~= 40 then commit = 'main' end
-	end
-
-	-- Ensure `commit.txt` exists before reading
-	if isfile(commitFile) then
-		local commitContents = readfile(commitFile)
-		if commitContents ~= '' then
-			commit = commitContents
-		end
-	end
-
-	if commit == 'main' or (isfile(commitFile) and readfile(commitFile) ~= commit) then
+	local commit = subbed:find('currentOid')
+	commit = commit and subbed:sub(commit + 13, commit + 52) or nil
+	commit = commit and #commit == 40 and commit or 'main'
+	if commit == 'main' or (isfile('newvape/profiles/commit.txt') and readfile('newvape/profiles/commit.txt') or '') ~= commit then
 		wipeFolder('newvape')
 		wipeFolder('newvape/games')
 		wipeFolder('newvape/guis')
 		wipeFolder('newvape/libraries')
 	end
-	
-	writefile(commitFile, commit)
+	writefile('newvape/profiles/commit.txt', commit)
 end
 
--- Debugging Information (Move Before `return`)
-print("Commit hash:", commit)
-print("Downloading main.lua...")
-
-local mainScript = downloadFile('newvape/main.lua')
-if not mainScript or mainScript == '' then
-    error("Failed to load main.lua")
-end
-
--- Return after debug prints
-return loadstring(mainScript, 'main')()
+return loadstring(downloadFile('newvape/main.lua'), 'main')()
