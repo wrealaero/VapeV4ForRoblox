@@ -923,6 +923,52 @@ run(function()
 end)
 
 run(function()
+	local SkollKitCrasher = {Enabled = false}
+	SkollKitCrasher = vape.Categories.Modules:CreateModule({
+		["Name"] = "SkollKitCrasher",
+		["Function"] = function(callback)
+			if callback then
+				repeat
+					task.wait()
+					game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("VoidHunter_MarkAbilityRequest"):FireServer({
+						direction = Vector3.zero;
+					})
+				until not SkollKitCrasher["Enabled"]
+			end
+		end,
+		["Description"] = "SkollKitCrasher"
+	})
+end)
+run(function()
+	local AntiSkollKitCrasher = {Enabled = false}
+	AntiSkollKitCrasher = vape.Categories.Modules:CreateModule({
+		["Name"] = "AntiSkollKitCrasher",
+		["Function"] = function(callback)
+			if callback then
+				for i,v in next, getgc() do
+					if type(v) == 'function' and debug.info(v,"n") == "useMarkAbility" then
+						local RateLimit = {}
+						local old
+						old = hookfunction(v,function(...)
+							local args = {...}
+							if not RateLimit[args[2]] then
+								RateLimit[args[2]] = tick()
+								return old(...)
+							elseif RateLimit[args[2]] + 10 < tick() then
+								RateLimit[args[2]] = tick()
+								return old(...)
+							end
+						end)
+						break
+					end
+				end
+			end
+		end,
+		["Description"] = "AntiSkollKitCrasher"
+	})
+end)
+
+run(function()
     local NightmareEventButton
     NightmareEventButton = vape.Categories.Modules:CreateModule({
         Name = "Nightmare Emote",
