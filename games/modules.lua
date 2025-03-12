@@ -942,7 +942,7 @@ run(function()
 				end
 			end
 		end,
-		["Description"] = "ProjectileExploit"
+		["Description"] = "ProjectileExploit Thanks Retro.gone"
 	})
 end)
 
