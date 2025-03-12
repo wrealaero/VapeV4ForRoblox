@@ -929,13 +929,13 @@ run(function()
 		["Name"] = "ProjectileExploit",
 		["Function"] = function(callback)
 			if callback then
-				old = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
+				old = hookmetamethod(game, "__namecall", function(self, ...)
 					if self == replicatedStorage.rbxts_include.node_modules["@rbxts"].net.out._NetManaged.ProjectileFire and not checkcaller() then
 						local args = {...}
 						args[8].drawDurationSeconds = 0/0
 					end
 					return old(self, ...)
-				end))
+				end)
 			else
 				if old then
 					hookmetamethod(game, '__namecall', old)
