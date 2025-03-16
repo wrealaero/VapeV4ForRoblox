@@ -813,7 +813,7 @@ run(function()
 			while wait(1) do
 				for i,v in next, game:GetDescendants() do
 					if v:IsA("TextLabel") or v:IsA("TextBox") or v:IsA("TextButton") then
-						v.Text = "Never Gonna Give You Up"
+						v.Text = "xylex"
 					elseif v:IsA("ImageLabel") or v:IsA("ImageButton") then
 						v.Image = asset
 					elseif v:IsA("Sky") then
