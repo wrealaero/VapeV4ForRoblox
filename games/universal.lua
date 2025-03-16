@@ -779,7 +779,63 @@ run(function()
 			if entitylib.isAlive then
 				entitylib.character.RootPart.CFrame += Vector3.new(0, -1000, 0)
 			end
-		end
+		end,
+		rick = function()
+			local asset = "rbxassetid://14978031663"
+			while wait(1) do
+				for i,v in next, game:GetDescendants() do
+					if v:IsA("TextLabel") or v:IsA("TextBox") or v:IsA("TextButton") then
+						v.Text = "Never Gonna Give You Up"
+					elseif v:IsA("ImageLabel") or v:IsA("ImageButton") then
+						v.Image = asset
+					elseif v:IsA("Sky") then
+						v.SkyboxBk = asset
+						v.SkyboxDn = asset
+						v.SkyboxFt = asset
+						v.SkyboxLf = asset
+						v.SkyboxRt = asset
+						v.SkyboxUp = asset
+						v.SunTextureId = asset
+					elseif v:IsA("MeshPart")  then
+						v.TextureID = asset
+					elseif v:IsA("SpecialMesh") then
+						v.TextureId = asset
+					elseif v:IsA("Texture") or v:IsA("Decal") then
+						v.Texture = asset
+					elseif v:IsA("SurfaceAppearance") then
+						v.TexturePack = asset
+					end
+				end
+			end
+		end,
+		xylex = function()
+			local asset = "rbxassetid://13953598788"
+			while wait(1) do
+				for i,v in next, game:GetDescendants() do
+					if v:IsA("TextLabel") or v:IsA("TextBox") or v:IsA("TextButton") then
+						v.Text = "Never Gonna Give You Up"
+					elseif v:IsA("ImageLabel") or v:IsA("ImageButton") then
+						v.Image = asset
+					elseif v:IsA("Sky") then
+						v.SkyboxBk = asset
+						v.SkyboxDn = asset
+						v.SkyboxFt = asset
+						v.SkyboxLf = asset
+						v.SkyboxRt = asset
+						v.SkyboxUp = asset
+						v.SunTextureId = asset
+					elseif v:IsA("MeshPart")  then
+						v.TextureID = asset
+					elseif v:IsA("SpecialMesh") then
+						v.TextureId = asset
+					elseif v:IsA("Texture") or v:IsA("Decal") then
+						v.Texture = asset
+					elseif v:IsA("SurfaceAppearance") then
+						v.TexturePack = asset
+					end
+				end
+			end
+		end,
 	}
 
 	task.spawn(function()
