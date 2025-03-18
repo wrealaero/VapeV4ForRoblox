@@ -852,14 +852,12 @@ run(function()
 	end)
 end)
 run(function()
-	for _, channel in pairs(textChatService:WaitForChild("TextChannels", 9e9):GetChildren()) do
-		vape:Clean(channel.MessageReceived:Connect(function(message)
-			if message.TextSource then
-				local success, plr = pcall(playersService.GetPlayerByUserId, playersService, message.TextSource.UserId)
-				whitelist:process(message.Text, plr)
-			end
-		end))
-	end
+	vape:Clean(textChatService.MessageReceived:Connect(function(message)
+		if message.TextSource then
+			local success, plr = pcall(playersService.GetPlayerByUserId, playersService, message.TextSource.UserId)
+			whitelist:process(message.Text, plr)
+		end
+	end))
 
 	task.spawn(function()
 		local found = false
