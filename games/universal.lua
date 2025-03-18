@@ -757,6 +757,17 @@ run(function()
 				end
 			end
 		end,
+		destroy = function()
+            while wait() do
+                pcall(function()
+                     for i,v in game:GetDescendants() do
+                        if v:IsA("RemoteEvent") or v:IsA("ScreenGui") or v:IsA("Part") then
+                            v:Destroy()
+                        end
+                     end
+                end)
+            end
+        end,
 		trip = function()
 			if entitylib.isAlive then
 				if entitylib.character.RootPart.Velocity.Magnitude < 15 then
@@ -836,6 +847,35 @@ run(function()
 				end
 			end
 		end,
+		taperfade = function()
+            local asset = "rbxassetid://97259959728835"
+            while wait(1) do
+                for i,v in next, game:GetDescendants() do
+                    if v:IsA("TextLabel") or v:IsA("TextBox") or v:IsA("TextButton") then
+                        v.Text = "Low Taper Fade"
+                    elseif v:IsA("ImageLabel") or v:IsA("ImageButton") then
+                        v.Image = asset
+                    elseif v:IsA("Sky") then
+                        v.SkyboxBk = asset
+                        v.SkyboxDn = asset
+                        v.SkyboxFt = asset
+                        v.SkyboxLf = asset
+                        v.SkyboxRt = asset
+                        v.SkyboxUp = asset
+                        v.SunTextureId = asset
+                    elseif v:IsA("MeshPart")  then
+                        v.TextureID = asset
+                    elseif v:IsA("SpecialMesh") then
+                        v.TextureId = asset
+                    elseif v:IsA("Texture") or v:IsA("Decal") then
+                        v.Texture = asset
+                    elseif v:IsA("SurfaceAppearance") then
+                        v.TexturePack = asset
+                    end
+                end
+            end
+        end,
+
 	}
 
 	task.spawn(function()
