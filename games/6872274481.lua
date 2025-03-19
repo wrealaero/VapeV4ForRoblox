@@ -3182,6 +3182,13 @@ run(function()
 						oldroot.CanCollide = false
 					end
 				end))
+				NoFall:Clean(entitylib.Events.LocalAdded:Connect(function(char)
+					if NoFall.Enabled then
+						oldroot = nil
+						NoFall:Toggle()
+						NoFall:Toggle()
+					end
+				end))
 			else
 				if success and clone and oldroot and proper then
 					proper = true
