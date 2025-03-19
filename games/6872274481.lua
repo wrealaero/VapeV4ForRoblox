@@ -3170,14 +3170,12 @@ run(function()
 				NoFall:Clean(runService.PreSimulation:Connect(function(dt)
 					if entitylib.isAlive and oldroot then
 						local root = entitylib.character.RootPart
-						local cf = root.CFrame - vector.create(0, entitylib.character.Humanoid.HipHeight + (root.Size.Y / 2) - 1, 0)
-	
 						if not isnetworkowner(oldroot) then
 							root.CFrame = oldroot.CFrame
 							root.Velocity = oldroot.Velocity
 							return
 						end
-						oldroot.CFrame = cf
+						oldroot.CFrame = root.CFrame
 						oldroot.Velocity = vector.zero
 						oldroot.CanCollide = false
 					end
