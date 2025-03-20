@@ -2914,57 +2914,78 @@ run(function()
 end)
 	
 run(function()
+	local NoFall = {Enabled = false}
 	local clone
+	local success
 	local proper = true
-
 	getgenv().oldroot = nil
-	
 	local function doClone()
 		if entitylib.isAlive and entitylib.character.Humanoid.Health > 0 then
 			hip = entitylib.character.Humanoid.HipHeight
 			getgenv().oldroot = entitylib.character.HumanoidRootPart
-			if not lplr.Character.Parent then return false end
+			if not lplr.Character.Parent then
+				return false
+			end
+	
 			lplr.Character.Parent = game
 			clone = getgenv().oldroot:Clone()
 			clone.Parent = lplr.Character
 			getgenv().oldroot.Parent = gameCamera
-			bedwars.QueryUtil:setQueryIgnored(getgenv().oldroot, true)
 			clone.CFrame = getgenv().oldroot.CFrame
+	
 			lplr.Character.PrimaryPart = clone
+			entitylib.character.HumanoidRootPart = clone
+			entitylib.character.RootPart = clone
 			lplr.Character.Parent = workspace
+	
 			for _, v in lplr.Character:GetDescendants() do
 				if v:IsA('Weld') or v:IsA('Motor6D') then
-					if v.Part0 == getgenv().oldroot then v.Part0 = clone end
-					if v.Part1 == getgenv().oldroot then v.Part1 = clone end
+					if v.Part0 == getgenv().oldroot then
+						v.Part0 = clone
+					end
+					if v.Part1 == getgenv().oldroot then
+						v.Part1 = clone
+					end
 				end
 			end
+	
 			return true
 		end
+	
 		return false
 	end
 	
 	local function revertClone()
-		if not getgenv().oldroot or not getgenv().oldroot.Parent or not entitylib.isAlive then return false end
+		if not getgenv().oldroot or not getgenv().oldroot:IsDescendantOf(workspace) or not entitylib.isAlive then
+			return false
+		end
+	
 		lplr.Character.Parent = game
 		getgenv().oldroot.Parent = lplr.Character
 		lplr.Character.PrimaryPart = getgenv().oldroot
+		entitylib.character.HumanoidRootPart = getgenv().oldroot
+		entitylib.character.RootPart = getgenv().oldroot
 		lplr.Character.Parent = workspace
 		getgenv().oldroot.CanCollide = true
+	
 		for _, v in lplr.Character:GetDescendants() do
 			if v:IsA('Weld') or v:IsA('Motor6D') then
-				if v.Part0 == clone then v.Part0 = getgenv().oldroot end
-				if v.Part1 == clone then v.Part1 = getgenv().oldroot end
+				if v.Part0 == clone then
+					v.Part0 = getgenv().oldroot
+				end
+				if v.Part1 == clone then
+					v.Part1 = getgenv().oldroot
+				end
 			end
 		end
-		local oldclonepos = clone.Position.Y
+	
+		local oldpos = clone.CFrame
 		if clone then
 			clone:Destroy()
 			clone = nil
 		end
-		local origcf = {getgenv().oldroot.CFrame:GetComponents()}
-		if valid then origcf[2] = oldclonepos end
-		getgenv().oldroot.CFrame = CFrame.new(unpack(origcf))
-		getgenv().oldroot.Transparency = 1
+	
+		getgenv().oldroot.CFrame = oldpos
 		getgenv().oldroot = nil
 		entitylib.character.Humanoid.HipHeight = hip or 2
 	end
@@ -2973,10 +2994,6 @@ run(function()
 		["Name"] = 'NoFall',
 		["Function"] = function(callback)
 			if callback then
-				if vape.Modules.Invisible and vape.Modules.Invisible.Enabled then
-					vape.Modules.Invisible:Toggle()
-					notif('NoFall', 'Invisible cannot be used with NoFall', 3, 'warning')
-				end
 				if not proper then
 					NoFall:Toggle()
 					return
@@ -2988,32 +3005,33 @@ run(function()
 					return
 				end
 				NoFall:Clean(runService.PreSimulation:Connect(function(dt)
-					if entitylib.isAlive and oldroot then
+					if entitylib.isAlive and getgenv().oldroot then
 						local root = entitylib.character.RootPart
-						if not isnetworkowner(oldroot) then
-							root.CFrame = oldroot.CFrame
-							root.Velocity = oldroot.Velocity
+						local cf = root.CFrame
+	
+						if not isnetworkowner(getgenv().oldroot) then
+							root.CFrame = getgenv().oldroot.CFrame
+							root.Velocity = getgenv().oldroot.Velocity
 							return
 						end
 						if not _G.AntiHitState then
-							oldroot.CFrame = root.CFrame
+							getgenv().oldroot.CFrame = cf
 						end
-						oldroot.Velocity = vector.zero
-						oldroot.CanCollide = false
+						getgenv().oldroot.Velocity = vector.zero
+						getgenv().oldroot.CanCollide = false
 					end
 				end))
 				NoFall:Clean(entitylib.Events.LocalAdded:Connect(function(char)
 					if NoFall.Enabled then
-						oldroot = nil
-						_G.AntiHitState = false
+						getgenv().oldroot = nil
 						NoFall:Toggle()
 						NoFall:Toggle()
 					end
 				end))
 			else
-				if success and clone and oldroot and proper then
+				if success and clone and getgenv().oldroot and proper then
 					proper = true
-					if oldroot and clone then
+					if getgenv().oldroot and clone then
 						revertClone()
 					end
 				end
