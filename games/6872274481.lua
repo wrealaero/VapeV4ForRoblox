@@ -2227,10 +2227,10 @@ run(function()
 						})
 						local plrs2 = entitylib.AllPosition({
 							Range = AntiHitRange.Value,
-							Wallcheck = Targets.Walls.Enabled or nil,
+							Wallcheck = AntiHitTargets.Walls.Enabled or nil,
 							Part = 'RootPart',
-							Players = Targets.Players.Enabled,
-							NPCs = Targets.NPCs.Enabled,
+							Players = AntiHitTargets.Players.Enabled,
+							NPCs = AntiHitTargets.NPCs.Enabled,
 							Limit = 1,
 							ignoreVulnerable = true,
 							Sort = sortmethods[Sort.Value]
@@ -2672,6 +2672,10 @@ run(function()
 	AntiHit = Killaura:CreateToggle({
 		Name = 'Anti Hit',
 		Default = true
+	})
+	AntiHitTargets = Killaura:CreateTargets({
+		Players = true,
+		NPCs = false
 	})
 	AntiHitRange = Killaura:CreateSlider({
 		Name = 'Anti Hit Range',
