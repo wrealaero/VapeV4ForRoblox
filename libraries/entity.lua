@@ -134,7 +134,7 @@ entitylib.EntityMouse = function(entitysettings)
 			if not vis then continue end
 			local mag = (mouseLocation - Vector2.new(position.x, position.y)).Magnitude
 			if mag > entitysettings.Range then continue end
-			if entitylib.isVulnerable(v) then
+			if entitysettings.ignoreVulnerable or entitylib.isVulnerable(v) then
 				table.insert(sortingTable, {
 					Entity = v,
 					Magnitude = v.Target and -1 or mag
