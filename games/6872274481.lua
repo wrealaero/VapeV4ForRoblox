@@ -2036,7 +2036,39 @@ run(function()
 		Tooltip = 'Lets you sprint with a speed potion.'
 	})
 end)
-
+local AntiHitTargets
+local AntiHitType
+local AntiHitRange
+local AntiHit
+run(function()
+	AntiHit = vape.Categories.Modules:CreateModule({
+		Name = 'AntiHit',
+		Function = function()end,
+        Default = false
+	})
+	AntiHitTargets = AntiHit:CreateTargets({
+		Players = true,
+		NPCs = false
+	})
+	AntiHitType = AntiHit:CreateDropdown({
+		Name = 'Dodge Mode',
+		List = {
+            'Up',
+			'Down'
+		},
+		Value = 'Up',
+		Function = function() end
+	})
+	AntiHitRange = AntiHit:CreateSlider({
+		Name = 'Anti Hit Range',
+		Min = 1,
+		Max = 30,
+		Default = 30,
+		Suffix = function(val)
+			return val == 1 and 'stud' or 'studs'
+		end
+	})
+end)
 local Attacking
 run(function()
 	local Killaura
@@ -2062,8 +2094,6 @@ run(function()
 	local AnimationMode
 	local AnimationSpeed
 	local AnimationTween
-	local AntiHit
-	local AntiHitRange
 	local Limit
 	local LegitAura
 	local Sync
@@ -2297,16 +2327,6 @@ run(function()
 											selfPosition = {value = pos}
 										}
 									})
-									if getgenv().oldroot and AntiHit.Enabled then
-										local root = entitylib.character.RootPart
-										if root then
-											_G.AntiHitState = true
-											getgenv().oldroot.CFrame = CFrame.new(root.CFrame.X or oldroot.CFrame.X, 0, root.CFrame.Z or oldroot.CFrame.Z)
-											wait(0.2)
-											getgenv().oldroot.CFrame = root.CFrame
-											wait(0.1)
-										end
-									end
 								end
 							end
 						end
@@ -2319,7 +2339,7 @@ run(function()
 									local root = entitylib.character.RootPart
 									if root then
 										_G.AntiHitState = true
-										getgenv().oldroot.CFrame = CFrame.new(root.CFrame.X, 0, root.CFrame.Z)
+										getgenv().oldroot.CFrame = AntiHitType.Value == "Up" or CFrame.new(root.CFrame.X, 0, root.CFrame.Z) and CFrame.new(root.CFrame.X, root.CFrame.Y, root.CFrame.Z) + vector.create(0,150,0)
 										wait(0.2)
 										getgenv().oldroot.CFrame = root.CFrame
 										wait(0.1)
@@ -2669,23 +2689,6 @@ run(function()
 		Name = 'Synced Animation',
 		Tooltip = 'Plays animation with hit attempt'
 	})
-	AntiHit = Killaura:CreateToggle({
-		Name = 'Anti Hit',
-		Default = true
-	})
-	AntiHitTargets = Killaura:CreateTargets({
-		Players = true,
-		NPCs = false
-	})
-	AntiHitRange = Killaura:CreateSlider({
-		Name = 'Anti Hit Range',
-		Min = 1,
-		Max = 30,
-		Default = 30,
-		Suffix = function(val)
-			return val == 1 and 'stud' or 'studs'
-		end
-	})
 end)
 
 run(function()
@@ -2992,6 +2995,7 @@ run(function()
 		getgenv().oldroot.CFrame = oldpos
 		getgenv().oldroot = nil
 		entitylib.character.Humanoid.HipHeight = hip or 2
+		_G.AntiHitState = false
 	end
 
 	NoFall = vape.Categories.Blatant:CreateModule({
@@ -3032,6 +3036,7 @@ run(function()
 				NoFall:Clean(entitylib.Events.LocalAdded:Connect(function(char)
 					if NoFall.Enabled then
 						getgenv().oldroot = nil
+						_G.AntiHitState = false
 						NoFall:Toggle()
 						NoFall:Toggle()
 					end
