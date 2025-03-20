@@ -2994,6 +2994,10 @@ run(function()
 		["Name"] = 'NoFall',
 		["Function"] = function(callback)
 			if callback then
+				if vape.Modules.Invisible and vape.Modules.Invisible.Enabled then
+					vape.Modules.Invisible:Toggle()
+					notif('NoFall', 'Invisible cannot be used with NoFall', 3, 'warning')
+				end
 				if not proper then
 					NoFall:Toggle()
 					return
