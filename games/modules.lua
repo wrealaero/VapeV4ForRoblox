@@ -2425,7 +2425,7 @@ run(function()
 		}
 	end
 	
-	BlockIn = vape.Categories.World:CreateModule({
+	BlockIn = vape.Categories.Modules:CreateModule({
 		Name = 'BlockIn',
 		Function = function(callback)
 			if callback then
