@@ -38,6 +38,14 @@ local cloneref = cloneref or function(obj)
 	return obj
 end
 
+local function getPlacedBlock(pos)
+	if not pos then
+		return
+	end
+	local roundedPosition = bedwars.BlockController:getBlockPosition(pos)
+	return bedwars.BlockController:getStore():getBlockAt(roundedPosition), roundedPosition
+end
+
 local vapeConnections
 if shared.vapeConnections and type(shared.vapeConnections) == "table" then vapeConnections = shared.vapeConnections else vapeConnections = {}; shared.vapeConnections = vapeConnections; end
 
@@ -2375,3 +2383,70 @@ run(function() -- pasted from old render once again
 	HotbarMaximumRotation.Object.Visible = false;
 	HotbarAnimationSpeed.Object.Visible = false;
 end);
+
+
+run(function()
+	local BlockIn
+	
+	local function getBedNear()
+		local localPosition = entitylib.isAlive and entitylib.character.RootPart.Position or Vector3.zero
+		for _, v in collectionService:GetTagged('bed') do
+			if (localPosition - v.Position).Magnitude < 20 and v:GetAttribute('Team'..(lplr:GetAttribute('Team') or -1)..'NoBreak') then
+				return v
+			end
+		end
+	end
+	
+	local function getBlocks()
+		local blocks = {}
+		for _, item in store.inventory.inventory.items do
+			local block = bedwars.ItemMeta[item.itemType].block
+			if block then
+				table.insert(blocks, {item.itemType, block.health})
+			end
+		end
+		table.sort(blocks, function(a, b) 
+			return a[2] < b[2]
+		end)
+		return blocks
+	end
+	
+	local function getPyramid(size, grid)
+		return {
+			Vector3.new(3, 0, 0);
+			Vector3.new(0, 0, 3);
+			Vector3.new(-3, 0, 0);
+			Vector3.new(0, 0, -3);
+			Vector3.new(3, 3, 0);
+			Vector3.new(0, 3, 3);
+			Vector3.new(-3, 3, 0);
+			Vector3.new(0, 3, -3);
+			Vector3.new(0, 6, 0);
+		}
+	end
+	
+	BlockIn = vape.Categories.World:CreateModule({
+		Name = 'BlockIn',
+		Function = function(callback)
+			if callback then
+				me = entitylib.isAlive and entitylib.character.RootPart.Position or nil
+				if me then
+					for i, block in getBlocks() do
+						for _, pos in getPyramid(i, 3) do
+							if not BlockIn.Enabled then break end
+							if getPlacedBlock(me + pos) then continue end
+							bedwars.placeBlock(me + pos, block[1], false)
+						end
+					end
+					if BlockIn.Enabled then 
+						BlockIn:Toggle() 
+					end
+				else
+					notif('BlockIn', 'Unable to locate me', 5)
+					BlockIn:Toggle()
+				end
+			end
+		end,
+		Tooltip = 'Automatically places strong blocks around the me.'
+	})
+end)
