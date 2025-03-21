@@ -2339,7 +2339,7 @@ run(function()
 									local root = entitylib.character.RootPart
 									if root then
 										_G.AntiHitState = true
-										getgenv().oldroot.CFrame = AntiHitType.Value == "Up" or CFrame.new(root.CFrame.X, 0, root.CFrame.Z) and CFrame.new(root.CFrame.X, root.CFrame.Y, root.CFrame.Z) + vector.create(0,150,0)
+										getgenv().oldroot.CFrame = AntiHitType.Value == "Up" or CFrame.new(root.CFrame.X, 0, root.CFrame.Z) and CFrame.new(root.CFrame.X, 200, root.CFrame.Z)
 										wait(0.2)
 										getgenv().oldroot.CFrame = root.CFrame
 										wait(0.1)
