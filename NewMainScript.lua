@@ -39,7 +39,7 @@ for _, folder in {'newvape', 'newvape/games', 'newvape/profiles', 'newvape/asset
 		makefolder(folder)
 	end
 end
-
+shared.script_key = script_key or nil
 if not shared.VapeDeveloper then
 	local _, subbed = pcall(function()
 		return game:HttpGet('https://github.com/QP-Offcial/VapeV4ForRoblox')
