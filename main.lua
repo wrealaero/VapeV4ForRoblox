@@ -60,7 +60,7 @@ local function finishLoading()
 	vape:Clean(playersService.LocalPlayer.OnTeleport:Connect(function()
 		if (not teleportedServers) and (not shared.VapeIndependent) then
 			teleportedServers = true
-			local teleportScript = "script_key = "..script_key..[[;
+			local teleportScript = "script_key = '"..script_key..[[';
 				shared.vapereload = true
 				if shared.VapeDeveloper then
 					loadstring(readfile('newvape/loader.lua'), 'loader')()
