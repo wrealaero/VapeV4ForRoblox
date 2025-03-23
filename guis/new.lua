@@ -370,8 +370,14 @@ local function makeDraggable(gui, window)
 				if input.UserInputType == (inputObj.UserInputType == Enum.UserInputType.MouseButton1 and Enum.UserInputType.MouseMovement or Enum.UserInputType.Touch) then
 					local position = input.Position
 					if inputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-						dragPosition = (dragPosition // 3) * 3
-						position = (position // 3) * 3
+						dragPosition = Vector2.new(
+							math.floor(dragPosition.X / 3) * 3,
+							math.floor(dragPosition.Y / 3) * 3
+						)
+						position = Vector2.new(
+							math.floor(position.X / 3) * 3, 
+							math.floor(position.Y / 3) * 3
+						)
 					end
 					gui.Position = UDim2.fromOffset((position.X / scale.Scale) + dragPosition.X, (position.Y / scale.Scale) + dragPosition.Y)
 				end
@@ -3689,7 +3695,7 @@ function mainapi:CreateCategory(categorysettings)
 		gradient.Rotation = 90
 		gradient.Enabled = false
 		gradient.Parent = modulebutton
-		local modulechildren = Instance.new('Frame')
+		local modulechildren = Instance.new('CanvasGroup')
 		local bind = Instance.new('TextButton')
 		addTooltip(modulebutton, modulesettings.Tooltip)
 		addTooltip(bind, 'Click to bind')
@@ -3867,11 +3873,31 @@ function mainapi:CreateCategory(categorysettings)
 				dots.ImageColor3 = color.Light(uipallet.Main, 0.37)
 			end
 		end)
+		local moduleexpanded = false
+		local function moduleexpand()
+			moduleexpanded = not moduleexpanded
+			if moduleexpanded then
+				modulechildren.Visible = moduleexpanded
+				modulechildren.Size = UDim2.new(1, 0, 0, 0)
+				tween:Tween(modulechildren, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+					Size = UDim2.new(1, 0, 0, windowlist.AbsoluteContentSize.Y / scale.Scale)
+				})
+			else
+				modulechildrenTween = tween:Tween(modulechildren, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {
+					Size = UDim2.new(1, 0, 0, 0)
+				})
+				task.delay(0.5,function()
+					modulechildren.Visible = moduleexpanded
+				end)
+			end
+
+		end
 		dotsbutton.MouseButton1Click:Connect(function()
-			modulechildren.Visible = not modulechildren.Visible
+			moduleexpand()
 		end)
+
 		dotsbutton.MouseButton2Click:Connect(function()
-			modulechildren.Visible = not modulechildren.Visible
+			moduleexpand()
 		end)
 		modulebutton.MouseEnter:Connect(function()
 			hovered = true
@@ -3893,7 +3919,7 @@ function mainapi:CreateCategory(categorysettings)
 			moduleapi:Toggle()
 		end)
 		modulebutton.MouseButton2Click:Connect(function()
-			modulechildren.Visible = not modulechildren.Visible
+			moduleexpand()
 		end)
 		if inputService.TouchEnabled then
 			local heldbutton = false
@@ -3967,12 +3993,30 @@ function mainapi:CreateCategory(categorysettings)
 
 		return moduleapi
 	end
-
+	local childrenTween
 	function categoryapi:Expand()
 		self.Expanded = not self.Expanded
-		children.Visible = self.Expanded
+		if self.Expanded then
+			children.Visible = self.Expanded
+			children.Size = UDim2.new(1, 0, 0, -41)
+			childrenTween = tween:Tween(children, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+				Size = UDim2.new(1, 0, 1, -41)
+			})
+		else
+			childrenTween = tween:Tween(children, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+				Size = UDim2.new(1, 0, 0, -41)
+			})
+			divider.Visible = false
+			task.delay(0.3,function()
+				children.Visible = self.Expanded
+				divider.Visible = children.CanvasPosition.Y > 10 and children.Visible
+			end)
+		end
 		arrow.Rotation = self.Expanded and 0 or 180
-		window.Size = UDim2.fromOffset(220, self.Expanded and math.min(41 + windowlist.AbsoluteContentSize.Y / scale.Scale, 601) or 41)
+		-- window.Size = UDim2.fromOffset(220, self.Expanded and math.min(41 + windowlist.AbsoluteContentSize.Y / scale.Scale, 601) or 41)
+		tween:Tween(window, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {
+			Size = UDim2.fromOffset(220, self.Expanded and math.min(41 + windowlist.AbsoluteContentSize.Y / scale.Scale, 601) or 41)
+		})
 		divider.Visible = children.CanvasPosition.Y > 10 and children.Visible
 	end
 
