@@ -101,6 +101,14 @@ local function addBlur(parent)
 	return blur
 end
 
+local function addCorner(parent, radius)
+	local corner = Instance.new('UICorner')
+	corner.CornerRadius = radius or UDim.new(0, 5)
+	corner.Parent = parent
+
+	return corner
+end
+
 local function calculateMoveVector(vec)
 	local c, s
 	local _, _, _, R00, R01, R02, _, _, R12, _, _, R22 = gameCamera.CFrame:GetComponents()
@@ -4840,6 +4848,7 @@ run(function()
 			local nametag = Instance.new('TextLabel')
 			nametag.TextSize = 14 * Scale.Value
 			nametag.FontFace = FontOption.Value
+			addCorner(nametag,UDim.new(0.4,0))
 			local ize = getfontsize(removeTags(Strings[ent]), nametag.TextSize, nametag.FontFace, Vector2.new(100000, 100000))
 			nametag.Name = ent.Player and ent.Player.Name or ent.Character.Name
 			nametag.Size = UDim2.fromOffset(ize.X + 8, ize.Y + 7)
@@ -8062,4 +8071,3 @@ run(function()
 	})
 	
 end)
-	
